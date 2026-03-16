@@ -53,8 +53,8 @@ jira open PROJ-123                                        # Open in browser
 ## Create Issue
 
 ```bash
-jira issue create -p PROJ -tBug -s"Summary" -yHigh -lbackend
-jira issue create -p PROJ -tStory -s"Feature name"
+jira issue create -p PROJ -tBug -s"Summary" -b"Detailed description" -yHigh -lbackend
+jira issue create -p PROJ -tStory -s"Feature name" -b"Description of the feature"
 ```
 
 ## Update Issue
