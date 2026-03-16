@@ -1,0 +1,16 @@
+# skill-creator workspace/temp files
+*-workspace/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor/IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Claude Code
+.claude/

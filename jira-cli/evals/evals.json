@@ -1,0 +1,29 @@
+{
+  "skill_name": "jira-cli",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "What am I currently working on in Jira?",
+      "expected_output": "Should show a jira issue list command filtered to the current user and in-progress status, using --plain and --no-truncate flags",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Create a high priority bug ticket for the login page timing out after 30 seconds",
+      "expected_output": "Should show a jira issue create command with type Bug, high priority, a clear summary, description about the timeout, and --no-input flag",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Move PROJ-456 to done and assign PROJ-789 to me",
+      "expected_output": "Should show a jira issue move command for PROJ-456 to Done, and a jira issue assign command for PROJ-789 using $(jira me)",
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "Use JQL to find all the backlog items I've created",
+      "expected_output": "Should use jira issue list with --jql flag, filtering by reporter=currentUser() and a backlog-related status, with --plain flag",
+      "files": []
+    }
+  ]
+}
