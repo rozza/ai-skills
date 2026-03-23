@@ -5,7 +5,9 @@ description: Manage Jira issues via command line - read issues, query by filters
 
 # jira-cli: Command-Line Jira Management
 
-Use jira-cli when interacting with Jira. Assume jira-cli already installed/configured.
+Use jira-cli when interacting with Jira. Assume jira-cli already installed.
+
+**Setup:** If `JIRA_API_TOKEN` is not set, source the setup script first: `source ./jira-cli/scripts/jira_cli_setup.sh` — this loads the token from the macOS keychain (or prompts to create one).
 
 **Project flag:** Always use `-p PROJ` to specify project explicitly (don't rely on defaults)
 
