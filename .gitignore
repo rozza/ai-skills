@@ -13,5 +13,9 @@ Thumbs.db
 *.swo
 *~
 
+# jira-work (machine-specific config and generated plans)
+jira-work/config.yml
+jira-work/plans/
+
 # Claude Code
 .claude/
