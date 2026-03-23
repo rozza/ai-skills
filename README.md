@@ -3,17 +3,14 @@ A collection of AI agent skills
 
 ## Installation
 
-Install a skill using the Claude Code CLI:
+Symlink this repo into your Claude Code skills directory:
 
 ```bash
-claude skill add --name <skill-name> --path /path/to/ai-skills/<skill-name>
+mkdir -p ~/.claude/skills
+ln -s /path/to/ai-skills/* ~/.claude/skills/
 ```
 
-For example, to install the jira-cli skill:
-
-```bash
-claude skill add --name jira-cli --path /path/to/ai-skills/jira-cli
-```
+This makes all skills available globally across projects.
 
 ## Skills
 
