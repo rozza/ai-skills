@@ -18,7 +18,7 @@ Extract the project key and ticket ID from the argument:
 
 ## Step 2: Resolve Working Directory
 
-Read the config file at `./jira-work/config.yml` to find the local repo path for the
+Read the config file at `config.yml` (relative to this skill's directory) to find the local repo path for the
 project.
 
 ```yaml
@@ -30,7 +30,7 @@ projects:
 - Look up the project key (e.g., `JAVA`) to get `WORK_PATH`
 - **If `config.yml` doesn’t exist or the project key is missing:** Ask the user for the
   local repo path. Validate it exists and is a git repo.
-  Add the mapping to `config.yml` (create the file if needed), then continue.
+  Add the mapping to `config.yml` in this skill's directory (create the file if needed), then continue.
 
 ## Step 3: Check for Uncommitted Work
 
@@ -84,7 +84,7 @@ relevant code.
 **Important:** If there isn’t enough information to make a plan, ask the user clarifying
 questions. Do not guess.
 
-Write the plan to `./jira-work/plans/$TICKET_ID-PLAN.md` with this structure:
+Write the plan to `plans/$TICKET_ID-PLAN.md` (relative to this skill's directory) with this structure:
 
 ```markdown
 # $TICKET_ID: [Ticket Summary]
@@ -124,7 +124,7 @@ They assume you are already on the feature branch in the correct repo.
 Implement the plan for the current branch’s ticket.
 
 1. Determine the ticket ID from the current branch name
-2. Read the plan from `./jira-work/plans/$TICKET_ID-PLAN.md`
+2. Read the plan from `plans/$TICKET_ID-PLAN.md`
 3. **If no plan exists, STOP:** tell the user to run `/jira-work $TICKET_ID` first
 4. Implement the changes described in the plan, working through each item
 5. After each significant change, briefly summarize what was done
@@ -135,7 +135,7 @@ Implement the plan for the current branch’s ticket.
 Run a code review on the current ticket’s changes.
 
 1. Determine the ticket ID from the current branch name
-2. Read the plan from `./jira-work/plans/$TICKET_ID-PLAN.md` for context on intent
+2. Read the plan from `plans/$TICKET_ID-PLAN.md` for context on intent
 3. Invoke the `/driver-code-review main` skill to review the changes against `main`
 
 ### `/jira-work commit`
@@ -148,3 +148,4 @@ Commit all changes and push the branch to origin.
    `JAVA-6111: Add server selection timeout support`)
 4. Commit the changes
 5. Push the branch to origin: `git push -u origin $BRANCH_NAME`
+6. Delete the plan file: `plans/$TICKET_ID-PLAN.md`
