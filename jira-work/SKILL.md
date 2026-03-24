@@ -7,6 +7,8 @@ description: Start working on a Jira ticket - validates workspace, creates branc
 
 Invoked as `/jira-work PROJ-XXXX` (e.g., `/jira-work JAVA-6111`). Orchestrates the full "begin work" workflow.
 
+**Setup:** If `JIRA_API_TOKEN` is not set, source the setup script first: `source ../jira-cli/scripts/jira_cli_setup.sh` — this loads the token from the macOS keychain (or prompts to create one).
+
 ## Step 1: Parse Input
 
 Extract the project key and ticket ID from the argument:
