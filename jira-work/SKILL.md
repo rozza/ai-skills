@@ -70,8 +70,7 @@ Use these patterns to fetch the full ticket.
 Always use `--plain` to avoid interactive TUI and `-p PROJ` for the project flag.
 
 ```bash
-jira issue view -p $PROJECT $TICKET_ID --plain
-jira issue comment list $TICKET_ID --plain
+jira issue view -p $PROJECT $TICKET_ID --plain --comments 50
 ```
 
 Capture the full description, acceptance criteria, and all comments.
@@ -144,8 +143,8 @@ Commit all changes and push the branch to origin.
 
 1. Run `git status` to see what changed
 2. Stage all relevant files (do NOT stage unrelated files or secrets)
-3. Write a clear commit message that references the ticket ID (e.g.,
-   `JAVA-6111: Add server selection timeout support`)
+3. Write a clear commit message summarizing the changes. The last line of the
+   commit message must be the ticket ID on its own (e.g., `JAVA-6111`)
 4. Commit the changes
 5. Push the branch to origin: `git push -u origin $BRANCH_NAME`
 6. Delete the plan file: `plans/$TICKET_ID-PLAN.md`
