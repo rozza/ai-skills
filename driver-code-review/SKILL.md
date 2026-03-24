@@ -5,7 +5,8 @@ description: Review MongoDB Java/Kotlin/Scala driver code changes for correctnes
 
 # Driver Code Review
 
-Review **only the changed code** in a diff or pull request. Provide constructive feedback focused on what was actually modified — do not critique unchanged surrounding code.
+Review **only the changed code** in a diff or pull request or branch. Provide constructive feedback focused on what was actually modified — do not critique unchanged surrounding code. 
+Important: If its not clear what the diff is ask which branch to diff against.
 
 ## Scope Rule
 
