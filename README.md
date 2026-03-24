@@ -36,3 +36,16 @@ Start working on a Jira ticket with a single command. Orchestrates the full "beg
 7. Asks you to review the plan before any implementation begins
 
 **Requires:** Uses the local [jira-cli](jira-cli/) skill for all Jira commands. [ankitpokhrel/jira-cli](https://github.com/ankitpokhrel/jira-cli) must be installed and configured.
+
+### [driver-code-review](driver-code-review/)
+
+Review MongoDB Java/Kotlin/Scala driver code changes for correctness, performance, concurrency, binary compatibility, and idiomatic language usage. Focuses exclusively on changed code in diffs and pull requests.
+
+**Covers:**
+- Binary compatibility checks (flags breaking changes as blocking)
+- Language-idiomatic naming for Java, Kotlin, and Scala modules
+- Performance smell detection (regex, pooling, collections, caching)
+- Concurrency review (locks, volatile, atomics, thread pools)
+- Architecture, SOLID principles, clean code, and test quality
+
+**Reference guides:** [Architecture](driver-code-review/references/architecture.md) | [SOLID](driver-code-review/references/solid-principles.md) | [Clean Code](driver-code-review/references/clean-code.md) | [Test Quality](driver-code-review/references/test-quality.md) | [Performance](driver-code-review/references/performance.md) | [Concurrency](driver-code-review/references/concurrency.md)
