@@ -3,28 +3,29 @@
 Review and apply SOLID principles using examples from the MongoDB Java Driver.
 
 ## When to Use
-- User says "check SOLID" / "SOLID review" / "is this class doing too much?"
+
+- User says “check SOLID” / “SOLID review” / “is this class doing too much?”
 - Reviewing class design
 - Refactoring large classes
 - Code review focusing on design
 
----
+* * *
 
 ## Quick Reference
 
 | Letter | Principle | One-liner |
-|--------|-----------|-----------|
+| --- | --- | --- |
 | **S** | Single Responsibility | One class = one reason to change |
 | **O** | Open/Closed | Open for extension, closed for modification |
 | **L** | Liskov Substitution | Subtypes must be substitutable for base types |
 | **I** | Interface Segregation | Many specific interfaces > one general interface |
 | **D** | Dependency Inversion | Depend on abstractions, not concretions |
 
----
+* * *
 
 ## S - Single Responsibility Principle (SRP)
 
-> "A class should have only one reason to change."
+> “A class should have only one reason to change.”
 
 ### Violation
 
@@ -55,14 +56,18 @@ public class MongoService {
 ```
 
 **Problems:**
-- Connection management changes? Modify MongoService
-- Encoding format changes? Modify MongoService
-- Audit requirements change? Modify MongoService
+- Connection management changes?
+  Modify MongoService
+- Encoding format changes?
+  Modify MongoService
+- Audit requirements change?
+  Modify MongoService
 - Hard to test each concern separately
 
-### Good Example: The MongoDB Java Driver's Codec Architecture
+### Good Example: The MongoDB Java Driver’s Codec Architecture
 
-The driver separates encoding, decoding, and codec discovery into distinct responsibilities:
+The driver separates encoding, decoding, and codec discovery into distinct
+responsibilities:
 
 ```java
 // ✅ GOOD: Each interface has one responsibility
@@ -101,22 +106,22 @@ Each class has exactly one reason to change:
 ### How to Detect SRP Violations
 
 - Class has many `import` statements from different domains
-- Class name contains "And" or "Manager" or "Handler" (often)
+- Class name contains “And” or “Manager” or “Handler” (often)
 - Methods operate on unrelated data
 - Changes in one area require touching unrelated methods
 - Hard to name the class concisely
 
 ### Quick Check Questions
 
-1. Can you describe the class purpose in one sentence without "and"?
+1. Can you describe the class purpose in one sentence without “and”?
 2. Would different stakeholders request changes to this class?
-3. Are there methods that don't use most of the class fields?
+3. Are there methods that don’t use most of the class fields?
 
----
+* * *
 
 ## O - Open/Closed Principle (OCP)
 
-> "Software entities should be open for extension, but closed for modification."
+> “Software entities should be open for extension, but closed for modification.”
 
 ### Violation
 
@@ -140,7 +145,8 @@ public class ServerChooser {
 
 ### Good Example: The ServerSelector Strategy Pattern
 
-The driver defines a `ServerSelector` interface, and each selection strategy is a separate implementation:
+The driver defines a `ServerSelector` interface, and each selection strategy is a
+separate implementation:
 
 ```java
 // ✅ GOOD: ServerSelector interface - closed for modification
@@ -192,7 +198,8 @@ public class LatencyMinimizingServerSelector implements ServerSelector {
 }
 ```
 
-New selection strategy? Just add a new class implementing `ServerSelector` — no existing code modified.
+New selection strategy?
+Just add a new class implementing `ServerSelector` — no existing code modified.
 
 ### How to Detect OCP Violations
 
@@ -203,17 +210,17 @@ New selection strategy? Just add a new class implementing `ServerSelector` — n
 ### Common OCP Patterns
 
 | Pattern | Use When |
-|---------|----------|
+| --- | --- |
 | Strategy | Multiple algorithms for same operation |
 | Template Method | Same structure, different steps |
 | Decorator | Add behavior dynamically |
 | Factory | Create objects without specifying class |
 
----
+* * *
 
 ## L - Liskov Substitution Principle (LSP)
 
-> "Subtypes must be substitutable for their base types."
+> “Subtypes must be substitutable for their base types.”
 
 ### Violation: PrimaryReadPreference breaks the contract
 
@@ -250,7 +257,8 @@ void configureReadPreference(ReadPreference pref) {
 
 ### Good Example: The WriteModel Hierarchy
 
-The `WriteModel` hierarchy is properly substitutable — each subtype models a specific bulk write operation without violating the base contract:
+The `WriteModel` hierarchy is properly substitutable — each subtype models a specific
+bulk write operation without violating the base contract:
 
 ```java
 // ✅ GOOD: WriteModel subtypes are fully substitutable
@@ -295,15 +303,15 @@ collection.bulkWrite(List.of(
 ### LSP Rules
 
 | Rule | Meaning |
-|------|---------|
+| --- | --- |
 | Preconditions | Subclass cannot strengthen (require more) |
 | Postconditions | Subclass cannot weaken (promise less) |
-| Invariants | Subclass must maintain parent's invariants |
+| Invariants | Subclass must maintain parent’s invariants |
 | History | Subclass cannot modify inherited state unexpectedly |
 
 ### How to Detect LSP Violations
 
-- Subclass throws exception parent doesn't
+- Subclass throws exception parent doesn’t
 - Subclass returns null where parent returns object
 - Subclass ignores or overrides parent behavior unexpectedly
 - `instanceof` checks before calling methods
@@ -320,11 +328,11 @@ if (readPreference instanceof PrimaryReadPreference) {
 }
 ```
 
----
+* * *
 
 ## I - Interface Segregation Principle (ISP)
 
-> "Clients should not be forced to depend on interfaces they do not use."
+> “Clients should not be forced to depend on interfaces they do not use.”
 
 ### Violation
 
@@ -360,7 +368,7 @@ public class ReportingService implements MongoDataAccess<Document> {
 
 ### Good Example: Encoder / Decoder / Codec Segregation
 
-The driver's BSON codec system cleanly segregates read and write concerns:
+The driver’s BSON codec system cleanly segregates read and write concerns:
 
 ```java
 // ✅ GOOD: Segregated interfaces
@@ -386,7 +394,7 @@ This allows:
 - **Read-only components** to depend only on `Decoder<T>`
 - **Full CRUD components** to depend on `Codec<T>`
 
-No client is forced to implement capabilities it doesn't use.
+No client is forced to implement capabilities it doesn’t use.
 
 ### How to Detect ISP Violations
 
@@ -411,11 +419,12 @@ public interface CodecRegistry extends CodecProvider {
 }
 ```
 
----
+* * *
 
 ## D - Dependency Inversion Principle (DIP)
 
-> "High-level modules should not depend on low-level modules. Both should depend on abstractions."
+> “High-level modules should not depend on low-level modules.
+> Both should depend on abstractions.”
 
 ### Violation
 
@@ -443,7 +452,8 @@ public class MongoConnectionManager {
 
 ### Good Example: StreamFactory Abstraction
 
-The driver defines a `StreamFactory` interface, and the high-level connection code depends on it:
+The driver defines a `StreamFactory` interface, and the high-level connection code
+depends on it:
 
 ```java
 // ✅ GOOD: Depend on abstractions
@@ -477,7 +487,8 @@ public class AsynchronousSocketChannelStreamFactory implements StreamFactory {
 }
 ```
 
-Similarly, the CodecProvider/CodecRegistry pattern follows DIP — high-level code depends on the `CodecRegistry` abstraction, while concrete providers supply the implementations:
+Similarly, the CodecProvider/CodecRegistry pattern follows DIP — high-level code depends
+on the `CodecRegistry` abstraction, while concrete providers supply the implementations:
 
 ```java
 // High-level code depends on CodecRegistry abstraction
@@ -497,41 +508,42 @@ CodecRegistry registry = CodecRegistries.fromProviders(
 ### DIP in Practice
 
 | Bad (Concrete) | Good (Abstract) |
-|----------------|-----------------|
+| --- | --- |
 | `new SocketStreamFactory()` | `StreamFactory` injected via constructor |
 | `new BsonDocumentCodec()` | `CodecRegistry.get(BsonDocument.class)` |
 | `new PrimaryServerSelector()` | `ServerSelector` injected via configuration |
 
----
+* * *
 
 ## SOLID Review Checklist
 
 When reviewing code, check:
 
 | Principle | Question |
-|-----------|----------|
+| --- | --- |
 | **SRP** | Does this class have more than one reason to change? |
 | **OCP** | Will adding a new type/feature require modifying this class? |
 | **LSP** | Can subclasses be used wherever parent is expected? |
 | **ISP** | Are there empty or throwing method implementations? |
 | **DIP** | Does high-level code depend on concrete implementations? |
 
----
+* * *
 
 ## Common Refactoring Patterns
 
 | Violation | Refactoring | Driver Example |
-|-----------|-------------|----------------|
+| --- | --- | --- |
 | SRP - God class | Extract Class, Move Method | `Encoder` / `Decoder` / `Codec` separation |
 | OCP - Type switching | Strategy Pattern, Factory | `ServerSelector` implementations |
 | LSP - Broken inheritance | Composition over Inheritance, Extract Interface | `WriteModel` hierarchy |
 | ISP - Fat interface | Split Interface, Role Interface | `Encoder` / `Decoder` split |
 | DIP - Hard dependencies | Dependency Injection, Abstract Factory | `StreamFactory` / `CodecProvider` |
 
----
+* * *
 
 ## Related References
 
-- [Architecture Review Guide](architecture.md) - Architectural patterns and structural review criteria
+- [Architecture Review Guide](architecture.md) - Architectural patterns and structural
+  review criteria
 - [Clean Code Principles](clean-code.md) - Code-level principles (DRY, KISS, naming)
 - [Test Quality Guide](test-quality.md) - Test coverage and quality practices

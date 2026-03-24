@@ -1,18 +1,22 @@
 # Performance Smell Detection
 
-Identify **potential** code-level performance issues in Java code. Examples drawn from the MongoDB Java Driver.
+Identify **potential** code-level performance issues in Java code.
+Examples drawn from the MongoDB Java Driver.
 
 ## Philosophy
 
-> "Premature optimization is the root of all evil" - Donald Knuth
+> “Premature optimization is the root of all evil” - Donald Knuth
 
-This skill helps you **notice** potential performance smells, not blindly "fix" them. Modern JVMs (Java 21/25) are highly optimized. Always:
+This skill helps you **notice** potential performance smells, not blindly “fix” them.
+Modern JVMs (Java 21/25) are highly optimized.
+Always:
 
 1. **Measure first** — Use JMH, profilers, or production metrics
 2. **Focus on hot paths** — 90% of time spent in 10% of code
 3. **Consider readability** — Clear code often matters more than micro-optimizations
 
 ## When to Use
+
 - Reviewing performance-critical code paths
 - Investigating measured performance issues
 - Learning about Java performance patterns
@@ -21,15 +25,15 @@ This skill helps you **notice** potential performance smells, not blindly "fix" 
 ## Scope
 
 **This skill:** Code-level performance (strings, collections, objects, concurrency)
-**For architecture:** Use [Architecture Review Guide](architecture.md)
-**For design:** Use [SOLID Principles](solid-principles.md)
+**For architecture:** Use [Architecture Review Guide](architecture.md) **For design:**
+Use [SOLID Principles](solid-principles.md)
 
----
+* * *
 
 ## Quick Reference: Potential Smells
 
 | Smell | Severity | Context |
-|-------|----------|---------|
+| --- | --- | --- |
 | Regex compile in loop | 🔴 High | Always worth fixing |
 | String concat in loop | 🟡 Medium | Still valid in Java 21/25 |
 | Missing object pooling | 🟡 Medium | High-allocation hot paths |
@@ -38,13 +42,14 @@ This skill helps you **notice** potential performance smells, not blindly "fix" 
 | Wrong concurrent structure | 🔴 High | Correctness + performance |
 | Missing collection capacity | 🟢 Low | Minor, measure if critical |
 
----
+* * *
 
 ## Pre-Compiled Regex Patterns
 
 ### Always Pre-Compile — This Advice Is Not Outdated
 
-`Pattern.compile` is expensive. The driver consistently pre-compiles patterns as static finals:
+`Pattern.compile` is expensive.
+The driver consistently pre-compiles patterns as static finals:
 
 ```java
 // ✅ GOOD: From DomainNameUtils — pre-compiled as static final
@@ -91,7 +96,7 @@ for (String host : hosts) {
 }
 ```
 
----
+* * *
 
 ## String Operations
 
@@ -135,13 +140,14 @@ log.debug(String.format("Processing %s with id %d", name, id));
 log.debug("Processing {} with id {}", name, id);
 ```
 
----
+* * *
 
 ## Object Pooling and Buffer Management
 
 ### The PowerOfTwoBufferPool Pattern
 
-The driver pools `ByteBuffer` objects to avoid repeated allocation/GC. This is a real-world example of pooling done right:
+The driver pools `ByteBuffer` objects to avoid repeated allocation/GC. This is a
+real-world example of pooling done right:
 
 ```java
 // ✅ GOOD: Buffer pooling — avoids allocation in hot path
@@ -201,7 +207,7 @@ public class ConcurrentPool<T> implements Pool<T> {
 }
 ```
 
----
+* * *
 
 ## Efficient Bit Operations
 
@@ -226,9 +232,10 @@ static int roundUpToNextHighestPowerOfTwo(final int size) {
 }
 ```
 
-**Why:** These are called on every buffer allocation — `Math.log` would be significantly slower in this hot path.
+**Why:** These are called on every buffer allocation — `Math.log` would be significantly
+slower in this hot path.
 
----
+* * *
 
 ## Lock-Free Concurrent Patterns
 
@@ -290,7 +297,7 @@ void onServerDiscovered(ServerDescription server) {
 // or use ConcurrentHashMap with bounded size
 ```
 
----
+* * *
 
 ## Right Collection for the Job
 
@@ -340,7 +347,7 @@ static {
 }
 ```
 
----
+* * *
 
 ## Caching Computed Values
 
@@ -380,7 +387,7 @@ public static final WriteConcern MAJORITY = new WriteConcern("majority");
 // No object creation at usage sites
 ```
 
----
+* * *
 
 ## Boxing/Unboxing
 
@@ -413,7 +420,7 @@ int sum = values.stream()
     .sum();
 ```
 
----
+* * *
 
 ## Stream API — Nuanced View
 
@@ -449,17 +456,19 @@ for (int i = 0; i < 1_000_000; i++) {
 }
 ```
 
----
+* * *
 
 ## Performance Review Checklist
 
 ### 🔴 High Severity (Usually Worth Fixing)
+
 - [ ] Regex `Pattern.compile` in loops (pre-compile as `static final`)
 - [ ] Unbounded collections without eviction
 - [ ] String concatenation in loops (use `StringBuilder`)
 - [ ] Wrong concurrent data structure (e.g., `ArrayList` shared across threads)
 
 ### 🟡 Medium Severity (Measure First)
+
 - [ ] Streams in tight loops (>100K iterations)
 - [ ] Boxing in hot paths (use primitives)
 - [ ] Missing object pooling for expensive allocations (buffers, connections)
@@ -467,23 +476,26 @@ for (int i = 0; i < 1_000_000; i++) {
 - [ ] `List.contains()` in loops (use `Set`)
 
 ### 🟢 Low Severity (Nice to Have)
+
 - [ ] Collection initial capacity when size is known
 - [ ] `Collections.unmodifiableList` at API boundaries
 - [ ] Minor stream optimizations
 
----
+* * *
 
 ## When NOT to Optimize
 
 - **Not a hot path** — Setup code, config, admin operations
-- **No measured problem** — "Looks slow" is not a measurement
+- **No measured problem** — “Looks slow” is not a measurement
 - **Readability suffers** — Clear code > micro-optimization
 - **Small collections** — 100 items processed in microseconds
 - **One-time cost** — Startup initialization, factory creation
 
-The driver itself demonstrates this: `DefaultClusterFactory.createCluster()` has a long parameter list and does multiple allocations — but it runs once per `MongoClient` lifetime, so optimizing it would be premature.
+The driver itself demonstrates this: `DefaultClusterFactory.createCluster()` has a long
+parameter list and does multiple allocations — but it runs once per `MongoClient`
+lifetime, so optimizing it would be premature.
 
----
+* * *
 
 ## Analysis Commands
 
@@ -504,10 +516,11 @@ grep -rn "static final Pattern" --include="*.java"
 grep -rn "ConcurrentLinkedDeque\|ConcurrentHashMap" --include="*.java"
 ```
 
----
+* * *
 
 ## Related References
 
-- [Architecture Review Guide](architecture.md) — System-level performance (module boundaries, I/O patterns)
+- [Architecture Review Guide](architecture.md) — System-level performance (module
+  boundaries, I/O patterns)
 - [Clean Code Principles](clean-code.md) — Readability vs optimization trade-offs
 - [SOLID Principles](solid-principles.md) — Design for testability and extensibility

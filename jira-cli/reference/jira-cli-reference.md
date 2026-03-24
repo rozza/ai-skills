@@ -1,10 +1,12 @@
 # jira-cli Detailed Reference
 
-**Assumptions:** Already installed/configured, `JIRA_API_TOKEN` set, `jira init` complete
+**Assumptions:** Already installed/configured, `JIRA_API_TOKEN` set, `jira init`
+complete
 
-**Project flag:** Always use `-p PROJ` to specify project explicitly (don't rely on defaults)
+**Project flag:** Always use `-p PROJ` to specify project explicitly (don’t rely on
+defaults)
 
----
+* * *
 
 # Core Workflow: Working on Issue
 
@@ -18,7 +20,7 @@ jira issue comment add PROJ-123 "Fixed in $(git rev-parse --short HEAD)"
 jira issue move PROJ-123 "Done"                           # Close
 ```
 
----
+* * *
 
 # Command Syntax by Intent
 
@@ -67,7 +69,7 @@ jira issue comment add PROJ-123 "Comment text"            # Add comment
 jira issue edit -p PROJ PROJ-123 -yHigh -lurgent          # Edit priority/labels
 ```
 
----
+* * *
 
 # Efficient Data Extraction
 
@@ -86,7 +88,7 @@ jira issue list -p PROJ --plain --columns KEY,STATUS,ASSIGNEE
 jira issue view -p PROJ PROJ-123 --plain > /dev/null 2>&1 && echo "exists"
 ```
 
----
+* * *
 
 # JQL Reference
 
@@ -115,13 +117,12 @@ jira issue list -p PROJ --jql 'created >= -7d AND updated >= startOfWeek()'
 jira issue list -p PROJ --jql 'status IN ("To Do","In Progress")'
 ```
 
----
+* * *
 
 # Output Formats
 
-**For display:** Default table format
-**For parsing:** `--plain --no-headers --columns KEY`
-**For extraction:** `--raw` with `jq`
+**For display:** Default table format **For parsing:**
+`--plain --no-headers --columns KEY` **For extraction:** `--raw` with `jq`
 
 ```bash
 # Table (default)
@@ -134,12 +135,12 @@ jira issue list -p PROJ --plain --no-headers --columns KEY
 jira issue view -p PROJ PROJ-123 --raw | jq -r '.fields.summary'
 ```
 
----
+* * *
 
 # Filter Flags Reference
 
 | Flag | Purpose | Example |
-|------|---------|---------|
+| --- | --- | --- |
 | `-t` | Type | `-tBug`, `-tStory`, `-tTask` |
 | `-s` | Status | `-s"To Do"`, `-s"In Progress"` |
 | `-y` | Priority | `-yHigh`, `-yMedium`, `-yLow` |
@@ -149,37 +150,39 @@ jira issue view -p PROJ PROJ-123 --raw | jq -r '.fields.summary'
 | `--updated` | Updated date | `--updated -7d` |
 | `--jql` | Raw JQL query | `--jql 'custom query'` |
 
----
+* * *
 
 # User Intent → Command Mapping
 
 | User Says | Command |
-|-----------|---------|
-| "Work on PROJ-123" | `jira issue view -p PROJ PROJ-123` |
-| "What bugs do I have?" | `jira issue list -p PROJ -tBug -aCurrentUser` |
-| "What should I work on?" | `jira issue list -p PROJ -yHigh -s"To Do"` |
-| "Create bug for X" | `jira issue create -p PROJ -tBug -s"X"` |
-| "Close PROJ-123" | `jira issue move PROJ-123 "Done"` |
-| "Add comment to PROJ-123" | `jira issue comment add PROJ-123 "text"` |
-| "What did I work on yesterday?" | `jira issue list -p PROJ -aCurrentUser --updated -1d` |
+| --- | --- |
+| “Work on PROJ-123” | `jira issue view -p PROJ PROJ-123` |
+| “What bugs do I have?” | `jira issue list -p PROJ -tBug -aCurrentUser` |
+| “What should I work on?” | `jira issue list -p PROJ -yHigh -s"To Do"` |
+| “Create bug for X” | `jira issue create -p PROJ -tBug -s"X"` |
+| “Close PROJ-123” | `jira issue move PROJ-123 "Done"` |
+| “Add comment to PROJ-123” | `jira issue comment add PROJ-123 "text"` |
+| “What did I work on yesterday?” | `jira issue list -p PROJ -aCurrentUser --updated -1d` |
 
----
+* * *
 
 # Best Practices
 
 1. **Always specify project:** Use `-p PROJ` flag explicitly
-2. **Extract minimal data:** Use `--raw | jq` for specific fields instead of reading full issue
+2. **Extract minimal data:** Use `--raw | jq` for specific fields instead of reading
+   full issue
 3. **Filter before reading:** Narrow with queries, then read details
 4. **Use plain output for scripts:** `--plain --no-headers --columns KEY`
 5. **Proactive updates:** After code changes, offer to add commits/close issues
 6. **Rate limits:** Add `sleep 0.5` between bulk operations
 
----
+* * *
 
 # Troubleshooting
 
 **Auth errors:** Check `echo $JIRA_API_TOKEN` and `cat ~/.config/.jira/.config.yml`
 
-**Issue not found:** Verify project key correct: `jira issue view -p PROJ PROJ-123 --plain`
+**Issue not found:** Verify project key correct:
+`jira issue view -p PROJ PROJ-123 --plain`
 
 **Rate limits:** Add delays between bulk operations, use more specific queries

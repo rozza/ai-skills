@@ -1,12 +1,14 @@
 # Test Quality
 
-Write high-quality, maintainable tests for Java projects using modern best practices. Examples drawn from the MongoDB Java Driver.
+Write high-quality, maintainable tests for Java projects using modern best practices.
+Examples drawn from the MongoDB Java Driver.
 
 Prefer JUnit 5 to Spock tests — do not add new Spock specification files.
 
 ## Framework Preferences
 
 ### JUnit 5 (Jupiter)
+
 ```java
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeEach;
@@ -17,7 +19,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 import static org.junit.jupiter.api.Assertions.*;
 ```
 
----
+* * *
 
 ## Test Structure (AAA Pattern)
 
@@ -60,11 +62,12 @@ void shouldSelectServersByLatencyThreshold() {
 }
 ```
 
----
+* * *
 
 ## Naming Conventions
 
 ### Test Class Names
+
 ```java
 // Class under test: ClusterDescription
 ClusterDescriptionTest      // ✅ Standard, used by the driver
@@ -100,11 +103,12 @@ void shouldReturnEmptyList_whenNoServersAreOk() { }
 void shouldThrowException_whenDatabaseNameContainsSlash() { }
 ```
 
----
+* * *
 
 ## Builder-Based Test Fixtures
 
-The driver uses builders extensively in tests to create readable, customizable test data:
+The driver uses builders extensively in tests to create readable, customizable test
+data:
 
 ```java
 // ✅ GOOD: Builders make test data clear and configurable
@@ -164,11 +168,12 @@ void shouldSelectServersWithinLatencyWindow() {
 }
 ```
 
----
+* * *
 
 ## Parameterized Tests
 
-Use `@ParameterizedTest` with `@MethodSource` to test multiple inputs without duplicating test logic:
+Use `@ParameterizedTest` with `@MethodSource` to test multiple inputs without
+duplicating test logic:
 
 ```java
 // ✅ GOOD: From WriteConcernHelperTest — tests all WriteConcern variants
@@ -231,7 +236,7 @@ void testToBytes(final ByteBuffer output) {
 }
 ```
 
----
+* * *
 
 ## Nested Test Classes
 
@@ -269,7 +274,7 @@ final class ExceptionUtilsTest {
 }
 ```
 
----
+* * *
 
 ## Codec Round-Trip Tests
 
@@ -320,7 +325,7 @@ public class DocumentCodecTest {
 }
 ```
 
----
+* * *
 
 ## Exception Testing
 
@@ -386,7 +391,7 @@ void shouldRejectNullValue() {
 }
 ```
 
----
+* * *
 
 ## Assertion Best Practices
 
@@ -448,13 +453,14 @@ cluster = new ClusterDescription(MULTIPLE, REPLICA_SET, asList(primary, secondar
 assertEquals(asList(primary, secondary), getAnyPrimaryOrSecondary(cluster));
 ```
 
----
+* * *
 
 ## Token Optimization
 
 When writing tests:
 
 ### 1. Generate Test Skeleton First
+
 ```java
 // Phase 1: List test cases as comments
 // @Test void shouldSelectPrimaryFromReplicaSet() { }
@@ -464,12 +470,14 @@ When writing tests:
 ```
 
 ### 2. Implement Incrementally
+
 - One test at a time
 - Verify compilation after each
 - Run tests to validate
 - Refactor if needed
 
 ### 3. Reuse Patterns
+
 ```java
 // Extract common setup to @BeforeEach or helper methods
 @BeforeEach
@@ -479,7 +487,7 @@ void setUp() {
 }
 ```
 
----
+* * *
 
 ## Code Coverage Guidelines
 
@@ -509,7 +517,7 @@ public String toString() {
 }
 ```
 
----
+* * *
 
 ## Anti-Patterns
 
@@ -572,7 +580,7 @@ void shouldRoundTripDocumentThroughCodec() {
 }
 ```
 
----
+* * *
 
 ## Test Checklist
 
@@ -589,10 +597,11 @@ When reviewing tests, check:
 - [ ] Does each test verify one concept?
 - [ ] Are there tests for edge cases and error conditions?
 
----
+* * *
 
 ## Related References
 
-- [SOLID Principles](solid-principles.md) - Design principles (testable code follows SOLID)
+- [SOLID Principles](solid-principles.md) - Design principles (testable code follows
+  SOLID)
 - [Clean Code Principles](clean-code.md) - Naming and readability (applies to tests too)
 - [Architecture Review Guide](architecture.md) - Test architecture and module boundaries

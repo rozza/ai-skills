@@ -2,20 +2,62 @@
 name: driver-code-review
 description: Review MongoDB Java/Kotlin/Scala driver code changes for correctness, performance, concurrency, binary compatibility, and idiomatic language usage.
 ---
-
 # Driver Code Review
 
-Review **only the changed code** in a diff or pull request or branch. Provide constructive feedback focused on what was actually modified — do not critique unchanged surrounding code. 
-Important: If its not clear what the diff is ask which branch to diff against.
+Review **only the changed code** in a diff or pull request or branch.
+Provide constructive feedback focused on what was actually modified — do not critique
+unchanged surrounding code.
+
+## Step 0: Determine the Diff (MANDATORY — before any other action)
+
+**STOP. Do NOT run git diff, gh pr diff, gh pr view, git log, or ANY command until you
+complete this step.**
+
+The user may pass an argument after the skill invocation.
+Parse it as follows:
+
+| User invocation | Meaning | Action |
+| --- | --- | --- |
+| `/driver-code-review main` | Diff against main | `git diff main...HEAD` |
+| `/driver-code-review release/1.0` | Diff against a specific branch | `git diff release/1.0...HEAD` |
+| `/driver-code-review #123` | Review PR 123 | `gh pr diff 123` |
+| `/driver-code-review https://github.com/.../pull/123` | Review PR by URL | `gh pr diff 123` (extract number from URL) |
+| `/driver-code-review` (no argument) | Unknown — must ask | Ask the user (see below) |
+
+**Extra instructions with `-`:** Anything after a `-` is a focus area or extra
+instruction for the review.
+Apply it as additional emphasis on top of the standard review process.
+
+| Example | Diff source | Extra instruction |
+| --- | --- | --- |
+| `/driver-code-review main - ensure concurrency` | `main` | Focus on concurrency issues |
+| `/driver-code-review #123 - check binary compat` | PR 123 | Focus on binary compatibility |
+| `/driver-code-review - ensure thread safety` | None — ask | Focus on thread safety |
+
+**If no argument was provided (or the argument doesn’t match the patterns above):** you
+MUST ask the user:
+
+> “What should I diff against?
+> For example: a base branch (`main`), a PR number (`#123`), or staged changes?”
+
+**Then WAIT for their response.
+Do not run any commands.
+Do not infer the base branch from the current branch name, git history, or any other
+context clue.** The user knows what they want reviewed — ask them.
 
 ## Scope Rule
 
-**Review only lines that were added, modified, or deleted.** You may read unchanged context to understand the change, but all feedback must target the diff itself. Do not suggest improvements to pre-existing code unless the change makes an existing issue worse or introduces a new interaction with it.
+**Review only lines that were added, modified, or deleted.** You may read unchanged
+context to understand the change, but all feedback must target the diff itself.
+Do not suggest improvements to pre-existing code unless the change makes an existing
+issue worse or introduces a new interaction with it.
 
 Specifically:
 - **In scope:** Changed lines, new files, deleted code (was removal correct?)
-- **In scope:** Pre-existing code that now has a new bug due to the change (e.g., a rename that missed a call site)
-- **Out of scope:** Style issues in unchanged lines, pre-existing tech debt not worsened by this change, unrelated code in the same file
+- **In scope:** Pre-existing code that now has a new bug due to the change (e.g., a
+  rename that missed a call site)
+- **Out of scope:** Style issues in unchanged lines, pre-existing tech debt not worsened
+  by this change, unrelated code in the same file
 - **Out of scope:** Suggesting refactors to code the author did not touch
 
 ## When to Use This Skill
@@ -50,18 +92,24 @@ Specifically:
 
 ### Phase 1: Understand the Change
 
-1. Read PR description and linked issue
-2. Identify what changed — new files, modified files, deleted files
+1. Read PR description and linked issue (if available)
+2. Using the diff obtained in Step 0, identify what changed — new files, modified files,
+   deleted files
 3. Understand the intent — bug fix, feature, refactor, test?
 
 ### Phase 2: Review the Diff
 
 For each changed file, review **only the changed lines** and their immediate context:
 
-1. **Correctness** - Does the change do what it claims? Edge cases, off-by-one, null checks
-2. **Architecture & Design** - Does the change fit? For significant structural changes, consult [Architecture Review Guide](references/architecture.md)
-3. **Performance** - Does the change introduce issues? For hot path changes, consult [Performance Review Guide](references/performance.md)
-4. **Security** - Does the change introduce vulnerabilities? Input validation, injection risks
+1. **Correctness** - Does the change do what it claims?
+   Edge cases, off-by-one, null checks
+2. **Architecture & Design** - Does the change fit?
+   For significant structural changes, consult
+   [Architecture Review Guide](references/architecture.md)
+3. **Performance** - Does the change introduce issues?
+   For hot path changes, consult [Performance Review Guide](references/performance.md)
+4. **Security** - Does the change introduce vulnerabilities?
+   Input validation, injection risks
 5. **Tests** - Are the changed/new behaviors tested?
 
 ### Phase 3: Summary & Decision
@@ -86,12 +134,14 @@ Use labels to indicate priority on **changed code**:
 
 ## Language-Idiomatic Naming
 
-The MongoDB Java Driver includes Kotlin and Scala modules. All code MUST follow the idiomatic naming conventions of its target language. Flag non-idiomatic naming as `[important]`.
+The MongoDB Java Driver includes Kotlin and Scala modules.
+All code MUST follow the idiomatic naming conventions of its target language.
+Flag non-idiomatic naming as `[important]`.
 
 ### Java (`driver-core/`, `driver-sync/`, `driver-reactive-streams/`, `bson/`)
 
 | Element | Convention | Example |
-|---------|-----------|---------|
+| --- | --- | --- |
 | Class | `PascalCase` | `MongoClientSettings` |
 | Method | `camelCase`, verb | `selectServer()`, `getDatabase()` |
 | Variable | `camelCase` | `serverSelectionTimeoutMS` |
@@ -103,7 +153,7 @@ The MongoDB Java Driver includes Kotlin and Scala modules. All code MUST follow 
 ### Kotlin (`driver-kotlin-coroutine/`, `driver-kotlin-sync/`)
 
 | Element | Convention | Example |
-|---------|-----------|---------|
+| --- | --- | --- |
 | Class | `PascalCase` | `MongoClient` |
 | Function | `camelCase`, verb | `findOneAndUpdate()` |
 | Property | `camelCase`, no `get`/`set` | `readPreference` (not `getReadPreference()`) |
@@ -129,7 +179,7 @@ val ready: Boolean
 ### Scala (`driver-scala/`)
 
 | Element | Convention | Example |
-|---------|-----------|---------|
+| --- | --- | --- |
 | Class/Trait | `PascalCase` | `MongoCollection` |
 | Method | `camelCase`, no `get` prefix | `readPreference` (not `getReadPreference()`) |
 | Value (`val`) | `camelCase` | `val defaultRegistry` |
@@ -154,22 +204,30 @@ val Majority: WriteConcern
 
 ### Cross-Language Review Rule
 
-When reviewing Kotlin or Scala modules, check that the public API surface feels native to the language:
+When reviewing Kotlin or Scala modules, check that the public API surface feels native
+to the language:
 
 1. **No Java getter/setter patterns** leaking into Kotlin properties or Scala accessors
-2. **No `Async` suffixes** on Kotlin coroutine functions — `suspend` already communicates this
-3. **No `is` prefix** on Kotlin/Scala boolean properties (the language conventions differ from Java)
+2. **No `Async` suffixes** on Kotlin coroutine functions — `suspend` already
+   communicates this
+3. **No `is` prefix** on Kotlin/Scala boolean properties (the language conventions
+   differ from Java)
 4. **Scala constants** use `PascalCase`, not `UPPER_SNAKE_CASE`
-5. **Wrapper APIs** should use language-native types (e.g., Scala `Option` not Java `Optional`, Kotlin `Flow` not reactive `Publisher`)
+5. **Wrapper APIs** should use language-native types (e.g., Scala `Option` not Java
+   `Optional`, Kotlin `Flow` not reactive `Publisher`)
 
 ## Binary Compatibility (Java)
 
-**Any change that breaks binary compatibility in public API classes MUST be flagged as `[blocking]`.** Downstream consumers compile against published artifacts — a binary-incompatible change will cause `NoSuchMethodError`, `IncompatibleClassChangeError`, or `AbstractMethodError` at runtime even without recompilation.
+**Any change that breaks binary compatibility in public API classes MUST be flagged as
+`[blocking]`.** Downstream consumers compile against published artifacts — a
+binary-incompatible change will cause `NoSuchMethodError`,
+`IncompatibleClassChangeError`, or `AbstractMethodError` at runtime even without
+recompilation.
 
 ### Always Flag as Blocking
 
 | Change | Runtime Error | Example |
-|--------|--------------|---------|
+| --- | --- | --- |
 | Remove or rename a public/protected method | `NoSuchMethodError` | Renaming `getTimeout()` to `timeout()` |
 | Remove or rename a public/protected class or interface | `NoClassDefFoundError` | Moving `ServerSelector` to a different package |
 | Change method signature (parameters, return type) | `NoSuchMethodError` | Changing `long getTimeout()` to `Duration getTimeout()` |
@@ -195,18 +253,19 @@ When reviewing changes to public API classes (anything outside `internal` packag
 1. Check the diff for removed/renamed/changed method signatures
 2. Check for new abstract methods on interfaces without defaults
 3. Check for visibility narrowing or added `final` modifiers
-4. If any are found: **mark as `[blocking]`** with a clear explanation of what breaks and for whom
+4. If any are found: **mark as `[blocking]`** with a clear explanation of what breaks
+   and for whom
 
 ## References
 
-Only load a reference when the change touches relevant code. Skip all references for documentation-only, Javadoc, or comment-only changes.
+Only load a reference when the change touches relevant code.
+Skip all references for documentation-only, Javadoc, or comment-only changes.
 
 | Reference | When to Load | Skip When |
-|-----------|-------------|-----------|
+| --- | --- | --- |
 | [Architecture](references/architecture.md) | New modules/packages, dependency changes, build file edits, public API surface changes | Single-file bug fixes, internal refactors within one package |
 | [SOLID Principles](references/solid-principles.md) | New classes/interfaces, class hierarchy changes, refactoring design patterns | Modifying method internals without changing class structure |
 | [Clean Code](references/clean-code.md) | Naming changes, method extraction, parameter list changes, new builders/value objects | Trivial one-line fixes, test-only changes |
 | [Test Quality](references/test-quality.md) | New or modified test files, test infrastructure changes | Production code only, no test files in diff |
 | [Performance](references/performance.md) | Hot path changes, collection/stream usage, regex, loops, buffer/pool code | Cold paths (startup, config, admin), documentation |
 | [Concurrency](references/concurrency.md) | Code using locks, volatile, atomics, thread pools, shared mutable state, async callbacks | Single-threaded code, immutable data, pure functions |
-

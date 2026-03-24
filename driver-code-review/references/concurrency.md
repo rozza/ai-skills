@@ -1,10 +1,13 @@
 # Concurrency Review
 
-Review Java concurrent code for correctness, safety, and modern best practices. Examples drawn from the MongoDB Java Driver.
+Review Java concurrent code for correctness, safety, and modern best practices.
+Examples drawn from the MongoDB Java Driver.
 
 ## Why This Matters
 
-> Nearly 60% of multithreaded applications encounter issues due to improper management of shared resources. - ACM Study
+> Nearly 60% of multithreaded applications encounter issues due to improper management
+> of shared resources.
+> - ACM Study
 
 Concurrency bugs are:
 - **Hard to reproduce** - timing-dependent
@@ -14,19 +17,21 @@ Concurrency bugs are:
 This helps catch issues **before** they reach production.
 
 ## When to Use
+
 - Reviewing code with `synchronized`, `volatile`, `Lock`
 - Checking `CompletableFuture`, `ExecutorService`
 - Validating thread safety of shared state
 - Reviewing Virtual Threads / Structured Concurrency code
 - Any code accessed by multiple threads
 
----
+* * *
 
 ## Lock Utility Pattern
 
 ### Centralizing Lock Management
 
-The driver centralizes all lock acquisition into a `Locks` utility, ensuring unlock always happens in a `finally` block and interrupts are handled consistently:
+The driver centralizes all lock acquisition into a `Locks` utility, ensuring unlock
+always happens in a `finally` block and interrupts are handled consistently:
 
 ```java
 // From Locks — centralizes safe lock usage
@@ -95,13 +100,14 @@ lock.unlock();  // Never reached if doWork() throws!
 withLock(lock, () -> doWork());
 ```
 
----
+* * *
 
 ## Volatile for Visibility
 
-### The Driver's Volatile Pattern
+### The Driver’s Volatile Pattern
 
-The driver uses `volatile` extensively for state flags that are written by one thread and read by many:
+The driver uses `volatile` extensively for state flags that are written by one thread
+and read by many:
 
 ```java
 // From BaseCluster — volatile for cluster state visibility
@@ -143,7 +149,9 @@ abstract class BaseCluster implements Cluster {
 }
 ```
 
-**Key pattern:** `volatile boolean isClosed` is written once and read many times across threads. The monitor thread sets it, and the server selection thread reads it — `volatile` guarantees the read thread sees the update.
+**Key pattern:** `volatile boolean isClosed` is written once and read many times across
+threads. The monitor thread sets it, and the server selection thread reads it —
+`volatile` guarantees the read thread sees the update.
 
 ### From DefaultServerMonitor — Volatile for Monitoring State
 
@@ -231,15 +239,18 @@ abstract class CursorResourceManager<CS, C> {
 }
 ```
 
-**Key insight:** State reads are `volatile` (fast, no lock), but state transitions are lock-protected. This gives maximum concurrency for reads while keeping transitions safe. Close is deferred when an operation is in progress — never interrupts mid-operation.
+**Key insight:** State reads are `volatile` (fast, no lock), but state transitions are
+lock-protected. This gives maximum concurrency for reads while keeping transitions safe.
+Close is deferred when an operation is in progress — never interrupts mid-operation.
 
----
+* * *
 
 ## Lock + Condition Pattern
 
 ### Permit-Based Pool with Condition Signaling
 
-The driver's `ConcurrentPool` uses `ReentrantLock` with `Condition` for wait/signal semantics:
+The driver’s `ConcurrentPool` uses `ReentrantLock` with `Condition` for wait/signal
+semantics:
 
 ```java
 // From ConcurrentPool.StateAndPermits — lock + condition for pool permits
@@ -323,7 +334,7 @@ try {
 }
 ```
 
----
+* * *
 
 ## Lock-Free Atomic Updates
 
@@ -418,15 +429,19 @@ private static final class PinnedStatsManager {
 }
 ```
 
-**Why LongAdder over AtomicLong?** `LongAdder` maintains internal striped cells to reduce contention. When many threads increment concurrently, it outperforms `AtomicLong` significantly. Use for write-heavy counters where the exact value is only needed occasionally.
+**Why LongAdder over AtomicLong?** `LongAdder` maintains internal striped cells to
+reduce contention. When many threads increment concurrently, it outperforms `AtomicLong`
+significantly. Use for write-heavy counters where the exact value is only needed
+occasionally.
 
----
+* * *
 
 ## CountDownLatch for Phase Coordination
 
 ### Phase-Based Server Selection
 
-The driver uses `CountDownLatch` with `AtomicReference` to coordinate between the server selection thread and the monitoring thread:
+The driver uses `CountDownLatch` with `AtomicReference` to coordinate between the server
+selection thread and the monitoring thread:
 
 ```java
 // From BaseCluster — CountDownLatch for topology change notification
@@ -457,7 +472,10 @@ abstract class BaseCluster implements Cluster {
 }
 ```
 
-**How it works:** Each topology change creates a **new** latch and counts down the **old** one. Server selection threads waiting on the old latch wake up and re-evaluate. This avoids missed signals — if the topology changes between checking and waiting, the latch is already counted down.
+**How it works:** Each topology change creates a **new** latch and counts down the
+**old** one. Server selection threads waiting on the old latch wake up and re-evaluate.
+This avoids missed signals — if the topology changes between checking and waiting, the
+latch is already counted down.
 
 ### CountDownLatch for Async-to-Sync Bridge
 
@@ -498,9 +516,11 @@ class FutureAsyncCompletionHandler<T> implements AsyncCompletionHandler<T> {
 }
 ```
 
-**Why `volatile` + `CountDownLatch`?** The `CountDownLatch` provides the happens-before guarantee for the `volatile` writes. When `latch.await()` returns, the `result`/`error` values are guaranteed visible.
+**Why `volatile` + `CountDownLatch`?** The `CountDownLatch` provides the happens-before
+guarantee for the `volatile` writes.
+When `latch.await()` returns, the `result`/`error` values are guaranteed visible.
 
----
+* * *
 
 ## Thread Safety Annotations
 
@@ -542,17 +562,18 @@ class DefaultServerMonitor implements ServerMonitor {
 ```
 
 **Annotation contract:**
-- `@ThreadSafe` — safe for concurrent use, callers don't need external synchronization
+- `@ThreadSafe` — safe for concurrent use, callers don’t need external synchronization
 - `@NotThreadSafe` — not safe for concurrent use, used for builders, iterators
 - `@GuardedBy("lock")` (Javadoc-level) — field access requires holding the named lock
 
----
+* * *
 
 ## ReadWriteLock for Read-Heavy Workloads
 
 ### StampedLock as ReadWriteLock
 
-The driver uses `StampedLock.asReadWriteLock()` in the connection pool's state management:
+The driver uses `StampedLock.asReadWriteLock()` in the connection pool’s state
+management:
 
 ```java
 // From DefaultConnectionPool.StateAndGeneration — StampedLock as ReadWriteLock
@@ -598,9 +619,12 @@ private final class StateAndGeneration {
 }
 ```
 
-**Why StampedLock?** `StampedLock.asReadWriteLock()` provides better throughput than `ReentrantReadWriteLock` for read-heavy scenarios. The state check (`throwIfClosedOrPaused`) is called on every connection checkout — far more often than state changes.
+**Why StampedLock?** `StampedLock.asReadWriteLock()` provides better throughput than
+`ReentrantReadWriteLock` for read-heavy scenarios.
+The state check (`throwIfClosedOrPaused`) is called on every connection checkout — far
+more often than state changes.
 
----
+* * *
 
 ## Thread Pool Management
 
@@ -690,13 +714,14 @@ private static class AsyncWorkManager implements AutoCloseable {
 - `shutdownNow()` on close — interrupts the blocked `take()` call
 - Remaining tasks failed after close — ensures no task is silently dropped
 
----
+* * *
 
 ## Cluster Lock Pattern
 
 ### Scoped Locking via Interface
 
-The driver uses `Cluster.withLock()` to ensure all topology updates happen under the cluster lock:
+The driver uses `Cluster.withLock()` to ensure all topology updates happen under the
+cluster lock:
 
 ```java
 // From Cluster interface — lock scope for topology updates
@@ -734,9 +759,12 @@ final class DefaultSdamServerDescriptionManager
 }
 ```
 
-**Why this ordering matters:** `connectionPool.ready()` is called **before** `updateDescription`, and `connectionPool.invalidate()` **after**. This ensures a paused pool is never exposed through an updated description. The cluster lock makes this ordering atomic.
+**Why this ordering matters:** `connectionPool.ready()` is called **before**
+`updateDescription`, and `connectionPool.invalidate()` **after**. This ensures a paused
+pool is never exposed through an updated description.
+The cluster lock makes this ordering atomic.
 
----
+* * *
 
 ## Modern Java (21/25): Virtual Threads
 
@@ -754,11 +782,14 @@ try (ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor()) {
 // Use platform threads / ForkJoinPool instead
 ```
 
-**Rule of thumb**: If your app never has 10,000+ concurrent tasks, virtual threads may not provide significant benefit.
+**Rule of thumb**: If your app never has 10,000+ concurrent tasks, virtual threads may
+not provide significant benefit.
 
 ### Java 25: Synchronized Pinning Fixed
 
-In Java 21-23, virtual threads became "pinned" when entering `synchronized` blocks with blocking operations. **Java 25 fixes this** (JEP 491).
+In Java 21-23, virtual threads became “pinned” when entering `synchronized` blocks with
+blocking operations.
+**Java 25 fixes this** (JEP 491).
 
 ```java
 // In Java 21-23: Could cause pinning
@@ -770,7 +801,9 @@ synchronized (lock) {
 // But the driver uses ReentrantLock for explicit control anyway
 ```
 
-**The driver's approach**: The driver uses `ReentrantLock` instead of `synchronized` throughout its connection and pooling code. This was a forward-looking decision that also avoids the pinning issue.
+**The driver’s approach**: The driver uses `ReentrantLock` instead of `synchronized`
+throughout its connection and pooling code.
+This was a forward-looking decision that also avoids the pinning issue.
 
 ### ScopedValue Over ThreadLocal
 
@@ -803,7 +836,7 @@ try (var scope = new StructuredTaskScope.ShutdownOnFailure()) {
 // All subtasks automatically cancelled if scope exits
 ```
 
----
+* * *
 
 ## Classic Concurrency Issues
 
@@ -898,21 +931,21 @@ public void transfer(Account from, Account to, int amount) {
 }
 ```
 
----
+* * *
 
 ## Thread-Safe Collections
 
 ### Choose the Right Collection
 
 | Use Case | Wrong | Right |
-|----------|-------|-------|
+| --- | --- | --- |
 | Concurrent reads/writes | `HashMap` | `ConcurrentHashMap` |
 | Frequent iteration | `ConcurrentHashMap` | `CopyOnWriteArrayList` |
 | Producer-consumer | `ArrayList` | `BlockingQueue` |
 | Sorted concurrent | `TreeMap` | `ConcurrentSkipListMap` |
 | Lock-free queue | `LinkedList` | `ConcurrentLinkedDeque` |
 
-### The Driver's Collection Choices
+### The Driver’s Collection Choices
 
 ```java
 // From ConcurrentPool — ConcurrentLinkedDeque for lock-free access
@@ -943,19 +976,21 @@ map.compute(key1, (k, v) -> {
 });
 ```
 
----
+* * *
 
 ## Concurrency Review Checklist
 
 ### High Severity (Likely Bugs)
+
 - [ ] No check-then-act on shared state without synchronization
 - [ ] No `synchronized` calling external/unknown code (deadlock risk)
 - [ ] `volatile` present for double-checked locking
 - [ ] Non-volatile fields not read in loops waiting for updates
-- [ ] `ConcurrentHashMap.compute()` doesn't call other map operations
+- [ ] `ConcurrentHashMap.compute()` doesn’t call other map operations
 - [ ] Lock `unlock()` always in `finally` block (or using `Locks.withLock()`)
 
 ### Medium Severity (Potential Issues)
+
 - [ ] Thread pools properly sized and named (use `DaemonThreadFactory`)
 - [ ] `ExecutorService` properly shut down (use `shutdownNow()`)
 - [ ] `CountDownLatch` / `Condition` handle `InterruptedException`
@@ -964,17 +999,19 @@ map.compute(key1, (k, v) -> {
 - [ ] Lock ordering documented for nested locks
 
 ### Modern Patterns (Java 21/25)
+
 - [ ] Virtual threads used for I/O-bound concurrent tasks
 - [ ] `ScopedValue` considered over `ThreadLocal`
 - [ ] Structured concurrency for related subtasks
 - [ ] `ReentrantLock` preferred over `synchronized` (avoids pinning in Java 21-23)
 
 ### Documentation
+
 - [ ] Thread safety documented on shared classes (`@ThreadSafe`, `@NotThreadSafe`)
 - [ ] `@GuardedBy` or Javadoc documents which lock guards which field
 - [ ] Each `volatile` usage justified
 
----
+* * *
 
 ## Analysis Commands
 
@@ -1001,7 +1038,7 @@ grep -rn "ThreadLocal" --include="*.java"
 grep -rn "containsKey\|contains(" --include="*.java" | grep -i "concurrent"
 ```
 
----
+* * *
 
 ## Related References
 

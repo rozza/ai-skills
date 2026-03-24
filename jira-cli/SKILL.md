@@ -2,24 +2,29 @@
 name: jira-cli
 description: Manage Jira issues via command line - read issues, query by filters, create/update issues, add comments, and close issues after work completion.
 ---
-
 # jira-cli: Command-Line Jira Management
 
-Use jira-cli when interacting with Jira. Assume jira-cli already installed.
+Use jira-cli when interacting with Jira.
+Assume jira-cli already installed.
 
-**Setup:** If `JIRA_API_TOKEN` is not set, source the setup script first: `source ./jira-cli/scripts/jira_cli_setup.sh` — this loads the token from the macOS keychain (or prompts to create one).
+**Setup:** If `JIRA_API_TOKEN` is not set, source the setup script first:
+`source ./jira-cli/scripts/jira_cli_setup.sh` — this loads the token from the macOS
+keychain (or prompts to create one).
 
-**Project flag:** Always use `-p PROJ` to specify project explicitly (don't rely on defaults)
+**Project flag:** Always use `-p PROJ` to specify project explicitly (don’t rely on
+defaults)
 
-**Non-interactive flags:** These are critical for agent usage — without them commands will hang:
+**Non-interactive flags:** These are critical for agent usage — without them commands
+will hang:
 - Always add `--plain` to list/view commands (prevents interactive TUI)
 - Always add `--no-input` to create/edit commands (prevents interactive prompts)
 
 ## When to Use
 
-**Use for:** Reading issues, querying (status/priority/assignee filters), creating/updating issues, adding comments, closing after work complete
+**Use for:** Reading issues, querying (status/priority/assignee filters),
+creating/updating issues, adding comments, closing after work complete
 
-**Ask user for web UI:** Attachments/images, visual board operations (can't do from CLI)
+**Ask user for web UI:** Attachments/images, visual board operations (can’t do from CLI)
 
 ## Core Pattern: Work on Issue
 

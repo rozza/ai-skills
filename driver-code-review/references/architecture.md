@@ -1,13 +1,14 @@
 # Architecture Review
 
-Analyze project structure at the macro level — packages, modules, layers, and boundaries. Examples drawn from the MongoDB Java Driver.
+Analyze project structure at the macro level — packages, modules, layers, and
+boundaries. Examples drawn from the MongoDB Java Driver.
 
----
+* * *
 
 ## Quick Reference: Architecture Smells
 
 | Smell | Symptom | Impact |
-|-------|---------|--------|
+| --- | --- | --- |
 | Package-by-layer bloat | `service/` with 50+ classes | Hard to find related code |
 | Domain → Infra dependency | Entity imports `@Repository` | Core logic tied to framework |
 | Circular dependencies | A → B → C → A | Untestable, fragile |
@@ -15,13 +16,14 @@ Analyze project structure at the macro level — packages, modules, layers, and 
 | Leaky abstractions | Controller knows SQL | Layer boundaries violated |
 | Missing API boundary | All classes public | Internal changes break consumers |
 
----
+* * *
 
 ## Module Organization Strategies
 
 ### Strategy 1: Module-per-Concern (Used by the MongoDB Java Driver)
 
-The driver organizes code into Gradle modules by concern, each with a clear responsibility:
+The driver organizes code into Gradle modules by concern, each with a clear
+responsibility:
 
 ```
 mongo-java-driver/
@@ -60,7 +62,8 @@ mongo-java-driver/
 - `bson` has zero driver dependencies — usable standalone
 - `driver-core` contains all shared logic; sync/async/reactive modules are thin wrappers
 - Each language variant (Kotlin, Scala) is a separate module
-- Adding a new API style (e.g., virtual-thread-native) means adding a module, not modifying core
+- Adding a new API style (e.g., virtual-thread-native) means adding a module, not
+  modifying core
 
 ### Strategy 2: Package-by-Layer (Traditional)
 
@@ -78,8 +81,8 @@ com.example.app/
     └── User.java
 ```
 
-**Pros**: Familiar, simple for small projects
-**Cons**: Scatters related code, doesn't scale, hard to extract modules
+**Pros**: Familiar, simple for small projects **Cons**: Scatters related code, doesn’t
+scale, hard to extract modules
 
 ### Strategy 3: Package-by-Feature (Recommended for Applications)
 
@@ -98,10 +101,10 @@ com.example.app/
     └── BaseEntity.java
 ```
 
-**Pros**: Related code together, easy to extract, clear boundaries
-**Cons**: May need shared kernel for cross-cutting concerns
+**Pros**: Related code together, easy to extract, clear boundaries **Cons**: May need
+shared kernel for cross-cutting concerns
 
----
+* * *
 
 ## Dependency Direction Rules
 
@@ -122,7 +125,7 @@ Dependencies MUST point inward only.
 Inner layers MUST NOT know about outer layers.
 ```
 
-### Good Example: The Driver's Layering
+### Good Example: The Driver’s Layering
 
 ```
 driver-sync  ──depends-on──►  driver-core  ──depends-on──►  bson
@@ -156,13 +159,14 @@ import com.mongodb.internal.operation.FindOperation;   // OK: outer depends on i
 import com.mongodb.internal.binding.ReadBinding;        // OK: outer depends on inner
 ```
 
----
+* * *
 
 ## Public API vs Internal Boundary
 
 ### The MongoDB Java Driver Pattern
 
-The driver enforces a clear **public vs internal** boundary using package structure and annotations:
+The driver enforces a clear **public vs internal** boundary using package structure and
+annotations:
 
 ```java
 // PUBLIC API — stable, versioned, subject to deprecation policy
@@ -203,22 +207,23 @@ public @interface Internal {
 The driver uses annotations to communicate API stability:
 
 | Annotation | Meaning | Review Action |
-|------------|---------|---------------|
+| --- | --- | --- |
 | `@Immutable` | Thread-safe, state never changes | Verify no mutable fields leak |
 | `@ThreadSafe` | Safe for concurrent use | Verify synchronization is correct |
 | `@NotThreadSafe` | Not safe for concurrent use | Verify single-thread usage |
-| `@Beta` | May change in minor releases | Don't depend on from stable code |
+| `@Beta` | May change in minor releases | Don’t depend on from stable code |
 | `@Alpha` | May change in patch releases | Experimental only |
-| `@Sealed` | No external subclassing | Don't extend outside the library |
+| `@Sealed` | No external subclassing | Don’t extend outside the library |
 | `@Internal` | Not for consumer use | Flag if used outside library |
 
----
+* * *
 
 ## Architecture Patterns in the Driver
 
 ### Pattern 1: Factory Hierarchies for Topology Variants
 
-The driver uses the Abstract Factory pattern to handle different cluster topologies without if/else sprawl in the main code:
+The driver uses the Abstract Factory pattern to handle different cluster topologies
+without if/else sprawl in the main code:
 
 ```java
 // DefaultClusterFactory creates the right Cluster implementation
@@ -266,7 +271,8 @@ Cluster (interface)
 
 ### Pattern 2: Event-Driven Observability
 
-The driver uses a listener/observer pattern with **immutable event objects** — cleanly separating observability from core logic:
+The driver uses a listener/observer pattern with **immutable event objects** — cleanly
+separating observability from core logic:
 
 ```java
 // Listener interfaces with default no-op methods (easy to implement partially)
@@ -293,7 +299,8 @@ public interface ClusterListener extends EventListener {
 
 ### Pattern 3: Operation Abstraction Layer
 
-The driver separates "what to do" (operations) from "how to talk to a server" (bindings/connections):
+The driver separates “what to do” (operations) from “how to talk to a server”
+(bindings/connections):
 
 ```java
 // ReadOperation — knows WHAT to do (build command, parse response)
@@ -321,13 +328,14 @@ public interface WriteOperation<T> {
 This separation means:
 - Operations are testable without a real server (mock the binding)
 - The same operation works with sync and async bindings
-- Adding a new operation doesn't touch connection management
+- Adding a new operation doesn’t touch connection management
 
----
+* * *
 
 ## Architecture Review Checklist
 
 ### 1. Module/Package Structure
+
 - [ ] Clear organization strategy (by-concern, by-feature, or hexagonal)
 - [ ] Consistent naming across modules
 - [ ] No `util/` or `common/` packages growing unbounded
@@ -335,33 +343,37 @@ This separation means:
 - [ ] Internal implementation separated from public API
 
 ### 2. Dependency Direction
+
 - [ ] Dependencies flow in one direction (outer → inner)
 - [ ] Core/domain has ZERO framework imports
 - [ ] No circular dependencies between packages or modules
-- [ ] Lower modules don't import from higher modules
+- [ ] Lower modules don’t import from higher modules
 - [ ] Clear dependency hierarchy visible in build file
 
 ### 3. Layer Boundaries
+
 - [ ] Public API surface is clearly defined
 - [ ] Internal classes are not exposed to consumers
 - [ ] DTOs/models at boundaries, domain objects inside
 - [ ] Cross-cutting concerns (logging, events) use abstractions
-- [ ] Operations don't know about transport details
+- [ ] Operations don’t know about transport details
 
 ### 4. Module Boundaries
+
 - [ ] Each module has a clear public API
 - [ ] `internal` packages mark non-public code
 - [ ] Cross-module communication through interfaces
-- [ ] No "reaching across" modules for internals
+- [ ] No “reaching across” modules for internals
 - [ ] Stability annotations communicate contract to consumers
 
 ### 5. Extensibility
+
 - [ ] Extension points via interfaces (listeners, providers, selectors)
-- [ ] New implementations don't require modifying existing code
+- [ ] New implementations don’t require modifying existing code
 - [ ] Factory pattern used for variant creation
 - [ ] Default methods on interfaces for backward-compatible evolution
 
----
+* * *
 
 ## Common Anti-Patterns
 
@@ -475,7 +487,7 @@ public abstract class BsonValue {
 }
 ```
 
----
+* * *
 
 ## Analysis Commands
 
@@ -499,7 +511,7 @@ grep -r "import.*\.internal\." src/main/java/com/example/api/ 2>/dev/null
 # Check if package A imports from B and B imports from A
 ```
 
----
+* * *
 
 ## Recommendations Format
 
@@ -515,12 +527,12 @@ When reporting findings:
 
 ### Findings
 
-| Severity | Issue | Location | Recommendation |
-|----------|-------|----------|----------------|
-| High | Internal class used in public API | `api/Service.java` imports `internal/Pool` | Define interface in public package |
-| High | Circular dependency | `order` ↔ `user` | Extract shared interface |
-| Medium | God package | `util/` (23 classes) | Distribute to feature modules |
-| Low | Inconsistent naming | `service/` vs `services/` | Standardize to `service/` |
+| Severity | Issue                              | Location                                   | Recommendation                    |
+|----------|------------------------------------|--------------------------------------------|-----------------------------------|
+| High     | Internal class used in public API  | `api/Service.java` imports `internal/Pool`  | Define interface in public package |
+| High     | Circular dependency                | `order` ↔ `user`                           | Extract shared interface          |
+| Medium   | God package                        | `util/` (23 classes)                        | Distribute to feature modules     |
+| Low      | Inconsistent naming                | `service/` vs `services/`                   | Standardize to `service/`         |
 
 ### Dependency Analysis
 [Describe dependency flow, violations found]
@@ -531,7 +543,7 @@ When reporting findings:
 3. [Nice to have]
 ```
 
----
+* * *
 
 ## Token Optimization
 
@@ -540,9 +552,9 @@ For large codebases:
 2. Check only core/domain packages for framework imports
 3. Sample 2-3 features for pattern analysis
 4. Review build files for module dependencies
-5. Don't read every file — look for patterns
+5. Don’t read every file — look for patterns
 
----
+* * *
 
 ## Related References
 

@@ -1,28 +1,31 @@
 # Clean Code
 
-Write readable, maintainable code following Clean Code principles. Examples drawn from the MongoDB Java Driver.
+Write readable, maintainable code following Clean Code principles.
+Examples drawn from the MongoDB Java Driver.
 
 ## When to Use
-- User says "clean this code" / "refactor" / "improve readability"
+
+- User says “clean this code” / “refactor” / “improve readability”
 - Code review focusing on maintainability
 - Reducing complexity
 - Improving naming
 
----
+* * *
 
 ## Core Principles
 
 | Principle | Meaning | Violation Sign |
-|-----------|---------|----------------|
-| **DRY** | Don't Repeat Yourself | Copy-pasted code blocks |
+| --- | --- | --- |
+| **DRY** | Don’t Repeat Yourself | Copy-pasted code blocks |
 | **KISS** | Keep It Simple, Stupid | Over-engineered solutions |
-| **YAGNI** | You Aren't Gonna Need It | Features "just in case" |
+| **YAGNI** | You Aren’t Gonna Need It | Features “just in case” |
 
----
+* * *
 
-## DRY - Don't Repeat Yourself
+## DRY - Don’t Repeat Yourself
 
-> "Every piece of knowledge must have a single, unambiguous representation in the system."
+> “Every piece of knowledge must have a single, unambiguous representation in the
+> system.”
 
 ### Violation
 
@@ -52,9 +55,10 @@ public class QueryBuilder {
 }
 ```
 
-### Good Example: The Driver's `Assertions` Utility
+### Good Example: The Driver’s `Assertions` Utility
 
-The driver centralizes all validation into `Assertions` — used hundreds of times across the codebase:
+The driver centralizes all validation into `Assertions` — used hundreds of times across
+the codebase:
 
 ```java
 // ✅ GOOD: Single source of truth for null validation
@@ -98,7 +102,8 @@ public class ClusterSettings {
 
 ### DRY in the BsonValue Hierarchy
 
-`BsonValue` uses `throwIfInvalidType()` to avoid repeating type-check logic across 15+ conversion methods:
+`BsonValue` uses `throwIfInvalidType()` to avoid repeating type-check logic across 15+
+conversion methods:
 
 ```java
 // ✅ GOOD: One method handles the pattern, called everywhere
@@ -130,7 +135,8 @@ public abstract class BsonValue {
 
 ### DRY Exceptions
 
-Not all duplication is bad. Avoid premature abstraction:
+Not all duplication is bad.
+Avoid premature abstraction:
 
 ```java
 // These look similar but serve different purposes — OK to duplicate
@@ -144,11 +150,11 @@ public long getMaxConnectionIdleTime(TimeUnit timeUnit) {
 // Don't force these into one method — they represent different concepts
 ```
 
----
+* * *
 
 ## KISS - Keep It Simple
 
-> "The simplest solution is usually the best."
+> “The simplest solution is usually the best.”
 
 ### Good Example: The Filters DSL
 
@@ -192,15 +198,16 @@ public final class Filters {
 - Is there a simpler way using standard libraries?
 - Am I adding complexity for edge cases that may never happen?
 
----
+* * *
 
-## YAGNI - You Aren't Gonna Need It
+## YAGNI - You Aren’t Gonna Need It
 
-> "Don't add functionality until it's necessary."
+> “Don’t add functionality until it’s necessary.”
 
 ### Good Example: The WriteModel Hierarchy
 
-The driver only defines the write models MongoDB actually supports — no speculative extras:
+The driver only defines the write models MongoDB actually supports — no speculative
+extras:
 
 ```java
 // ✅ GOOD: Only what's needed, nothing more
@@ -219,12 +226,12 @@ public final class ReplaceOneModel<T> extends WriteModel<T> { ... }
 
 ### YAGNI Signs
 
-- "We might need this later"
-- "Let's make it configurable just in case"
-- "What if we need to support X in the future?"
+- “We might need this later”
+- “Let’s make it configurable just in case”
+- “What if we need to support X in the future?”
 - Abstract classes with one implementation
 
----
+* * *
 
 ## Naming Conventions
 
@@ -282,7 +289,7 @@ Map<String, Object> sessionAttributes;
 ### Naming Conventions Table
 
 | Element | Convention | Driver Example |
-|---------|------------|----------------|
+| --- | --- | --- |
 | Class | PascalCase, noun | `MongoClientSettings` |
 | Interface | PascalCase, noun/adjective | `Codec`, `Closeable` |
 | Method | camelCase, verb | `selectServer()` |
@@ -290,13 +297,13 @@ Map<String, Object> sessionAttributes;
 | Constant | UPPER_SNAKE | `COMMAND_COLLECTION_NAME` |
 | Package | lowercase, dot-separated | `com.mongodb.client.model` |
 
----
+* * *
 
 ## Functions / Methods
 
 ### Keep Functions Small
 
-The driver's `MongoNamespace` validation is a good example — each check is focused:
+The driver’s `MongoNamespace` validation is a good example — each check is focused:
 
 ```java
 // ✅ GOOD: Focused validation methods
@@ -402,7 +409,7 @@ public void processQuery(MongoCollection<Document> collection, Bson filter) {
 }
 ```
 
----
+* * *
 
 ## Comments
 
@@ -422,7 +429,7 @@ if (document != null) { ... }
 
 ### Good Comments — Explain WHY, Not WHAT
 
-The driver uses comments where behavior isn't obvious:
+The driver uses comments where behavior isn’t obvious:
 
 ```java
 // ✅ GOOD from WriteConcern: Explains the domain constraint
@@ -454,7 +461,7 @@ if ((serverType == 1 || serverType == 2) && (readPref == 0 || readPref == 3)) { 
 if (readPreference.isSecondaryOk() && serverDescription.isOk()) { ... }
 ```
 
----
+* * *
 
 ## Value Objects Over Primitives
 
@@ -488,15 +495,15 @@ void executeQuery(MongoNamespace namespace, Bson filter) { ... }
 
 ### More Value Objects in the Driver
 
-| Instead of... | The driver uses... |
-|---------------|-------------------|
+| Instead of … | The driver uses … |
+| --- | --- |
 | `String host, int port` | `ServerAddress` |
 | `String database, String collection` | `MongoNamespace` |
 | `int w, int timeout, boolean journal` | `WriteConcern` |
 | `String tagKey, String tagValue` | `Tag`, `TagSet` |
 | `String clusterId` | `ClusterId` |
 
----
+* * *
 
 ## Named Constants Over Magic Numbers
 
@@ -531,26 +538,26 @@ public static final class Builder {
 }
 ```
 
----
+* * *
 
 ## Common Code Smells
 
 | Smell | Description | Driver Example of Doing It Right |
-|-------|-------------|----------------------------------|
+| --- | --- | --- |
 | **Long Parameter List** | > 3 parameters | Builder pattern (`MongoClientSettings.builder()`) |
 | **Duplicate Code** | Same code in multiple places | `Assertions.notNull()` used everywhere |
 | **Magic Numbers** | Unexplained literals | `WriteConcern.MAJORITY` named constants |
 | **Primitive Obsession** | Primitives instead of objects | `MongoNamespace`, `ServerAddress`, `TagSet` |
 | **Dead Code** | Unused code | Clean up with `@Deprecated` → remove cycle |
 | **God Class** | Class doing too much | Separate `Encoder`/`Decoder`/`Codec` |
-| **Feature Envy** | Method uses another class's data | Move method to the data class |
+| **Feature Envy** | Method uses another class’s data | Move method to the data class |
 
----
+* * *
 
 ## Refactoring Quick Reference
 
 | From | To | Technique | Driver Example |
-|------|-----|-----------|----------------|
+| --- | --- | --- | --- |
 | Long parameter list | Builder | Introduce Builder | `ClusterSettings.builder()` |
 | Duplicate validation | Shared utility | Extract Method | `Assertions.notNull()` |
 | Magic numbers | Named constants | Extract Constant | `WriteConcern.MAJORITY` |
@@ -582,7 +589,7 @@ public Builder applySettings(final ClusterSettings clusterSettings) {
 }
 ```
 
----
+* * *
 
 ## Clean Code Checklist
 
@@ -592,14 +599,14 @@ When reviewing code, check:
 - [ ] Are functions small and focused?
 - [ ] Is there any duplicated code?
 - [ ] Are there magic numbers or strings?
-- [ ] Are comments explaining "why" not "what"?
+- [ ] Are comments explaining “why” not “what”?
 - [ ] Is the code at consistent abstraction level?
 - [ ] Can any code be simplified?
 - [ ] Is there dead/unused code?
 - [ ] Are primitives wrapped in value objects where appropriate?
 - [ ] Are long parameter lists replaced with builders?
 
----
+* * *
 
 ## Related References
 
