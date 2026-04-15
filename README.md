@@ -93,3 +93,25 @@ Add extra focus with `-`:
 | [Test Quality](driver-code-review/references/test-quality.md) | JUnit 5, AAA pattern, parameterized tests, assertions |
 | [Performance](driver-code-review/references/performance.md) | Regex, pooling, collections, caching, boxing |
 | [Concurrency](driver-code-review/references/concurrency.md) | Locks, volatile, atomics, thread pools, virtual threads |
+
+
+### [specifications](specifications/)
+
+Look up and summarize MongoDB driver specifications from the official
+[mongodb/specifications](https://github.com/mongodb/specifications) repository.
+
+```bash
+/specifications crud                  # summarize the CRUD spec
+/specifications backpressure          # fuzzy matches to client-backpressure
+/specifications                       # list all specs grouped by category
+```
+
+**What it does:**
+1. Clones (or updates) the specifications repo locally
+2. Fuzzy-matches partial spec names to the correct specification
+3. Checks a local summary cache keyed by the spec file's git commit hash — serves
+   cached summaries instantly when the spec hasn't changed
+4. Reads the full spec and produces a structured summary (Purpose, Key Concepts,
+   Driver Requirements, API Surface, Error Handling, Testing Notes, Related Specs,
+   Changelog Highlights)
+5. Caches the summary for future lookups

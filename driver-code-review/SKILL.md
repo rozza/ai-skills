@@ -248,3 +248,10 @@ documentation-only, Javadoc, or comment-only changes.
 | [Test Quality](references/test-quality.md) | New or modified test files, test infrastructure changes | Production code only, no test files in diff |
 | [Performance](references/performance.md) | Hot path changes, collection/stream usage, regex, loops, buffer/pool code | Cold paths (startup, config, admin), documentation |
 | [Concurrency](references/concurrency.md) | Code using locks, volatile, atomics, thread pools, shared mutable state, async callbacks | Single-threaded code, immutable data, pure functions |
+
+---
+
+## Workspace Convention
+
+All temporary output (evals, benchmarks, scratch files) goes in the `workspace/`
+directory inside this skill's directory. The `*/workspace/` pattern is gitignored.

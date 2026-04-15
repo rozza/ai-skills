@@ -56,3 +56,10 @@ Load [jira-cli reference guide](./reference/jira-cli-reference.md) for:
 - Output format options
 - User intent → command mapping
 - Git integration patterns
+
+---
+
+## Workspace Convention
+
+All temporary output (evals, benchmarks, scratch files) goes in the `workspace/`
+directory inside this skill's directory. The `*/workspace/` pattern is gitignored.

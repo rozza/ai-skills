@@ -148,3 +148,10 @@ Commit all changes and push the branch to origin.
 4. Commit the changes
 5. Push the branch to origin: `git push -u origin $BRANCH_NAME`
 6. Delete the plan file: `plans/$TICKET_ID-PLAN.md`
+
+---
+
+## Workspace Convention
+
+All temporary output (evals, benchmarks, scratch files) goes in the `workspace/`
+directory inside this skill's directory. The `*/workspace/` pattern is gitignored.
