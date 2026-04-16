@@ -82,6 +82,18 @@ Add extra focus with `-`:
 - Performance smell detection (regex, pooling, collections, caching)
 - Concurrency review (locks, volatile, atomics, thread pools)
 - Architecture, SOLID principles, clean code, and test quality
+- GitHub Copilot suggestions (experimental — validated and filtered for correctness)
+- PR comment review — checks whether prior review comments have been addressed
+
+**Optional dependency:** GitHub Copilot CLI is used as an experimental additional review
+signal. Copilot suggestions are automatically validated — incorrect or irrelevant ones
+are discarded. If the extension is not installed or the command fails, the review
+proceeds without it.
+
+```bash
+gh extension install github/gh-copilot
+# Then run it locally - to install and auth
+```
 
 **Reference guides:**
 
