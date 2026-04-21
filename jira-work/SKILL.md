@@ -135,7 +135,7 @@ Run a code review on the current ticket’s changes.
 
 1. Determine the ticket ID from the current branch name
 2. Read the plan from `plans/$TICKET_ID-PLAN.md` for context on intent
-3. Invoke the `/driver-code-review main` skill to review the changes against `main`
+3. Invoke the `/driver-code-review` skill to review the changes (it will auto-detect the correct base branch from any open PR, falling back to `main`)
 
 ### `/jira-work commit`
 

@@ -28,7 +28,7 @@ Parse it as follows:
 | `/driver-code-review release/1.0` | Diff against a specific branch | `git diff release/1.0...HEAD` |
 | `/driver-code-review #123` | Review PR 123 | `gh pr diff 123 -R <remote>` (see remote resolution below) |
 | `/driver-code-review https://github.com/.../pull/123` | Review PR by URL | `gh pr diff 123 -R <remote>` (extract number from URL) |
-| `/driver-code-review` (no argument) | Default branch | `git diff main...HEAD` if `main` exists, else `git diff master...HEAD` |
+| `/driver-code-review` (no argument) | Auto-detect | Check for an open PR first (see auto-detect below), else `git diff main...HEAD`, else `git diff master...HEAD` |
 
 **Extra instructions with `-`:** Anything after a `-` is a focus area or extra
 instruction for the review.
@@ -41,9 +41,16 @@ Apply it as additional emphasis on top of the standard review process.
 | `/driver-code-review - ensure thread safety` | Default branch | Focus on thread safety |
 
 **If no argument was provided (or the argument doesn't match the patterns above):**
-default to diffing against the primary branch. Check if `main` exists
-(`git rev-parse --verify main`); if it does, use `git diff main...HEAD`. Otherwise,
-fall back to `git diff master...HEAD`.
+auto-detect the base branch using this sequence:
+
+1. **Check for an open PR on the current branch** — Run
+   `gh pr view --json number,baseRefName -q '.baseRefName'` (using remote resolution
+   below). If this succeeds and returns a base branch name, use
+   `git diff <baseRefName>...HEAD`. This correctly handles PRs targeting feature
+   branches (e.g., a PR against `backpressure` instead of `main`).
+2. **Fall back to primary branch** — If no open PR exists for the current branch,
+   check if `main` exists (`git rev-parse --verify main`); if it does, use
+   `git diff main...HEAD`. Otherwise, fall back to `git diff master...HEAD`.
 
 **Remote resolution for PRs:** When using `gh pr diff` or `gh pr view`, determine the
 correct remote repo. Check if an `upstream` remote exists
