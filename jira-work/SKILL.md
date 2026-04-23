@@ -1,6 +1,7 @@
 ---
 name: jira-work
 description: Start working on a Jira ticket - validates workspace, creates branch, fetches ticket details, and produces an implementation plan for review.
+disable-model-invocation: true
 ---
 # jira-work: Start Working on a Jira Ticket
 

@@ -1,6 +1,7 @@
 ---
 name: specifications
 description: Look up and summarize MongoDB driver specifications from the official mongodb/specifications repo. Use this skill when the user wants to read, review, understand, or get an overview of a MongoDB specification — e.g., "what does the CRUD spec say about find?", "summarize the retryable writes spec", or "/specifications client-side-encryption". Also trigger when the user references a MongoDB spec by name during driver development work.
+disable-model-invocation: true
 ---
 
 # specifications: MongoDB Specification Lookup & Summary
