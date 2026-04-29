@@ -193,6 +193,7 @@ instantly if the spec hasn't been updated upstream.
 
 ## Workspace Convention
 
+Strictly follow this convention: 
 All temporary output (evals, benchmarks, scratch files, the cloned specs repo, and
 the summary cache) goes in the `workspace/` directory inside this skill's directory.
 The `*/workspace/` pattern is gitignored.

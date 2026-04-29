@@ -85,7 +85,7 @@ relevant code.
 **Important:** If there isn’t enough information to make a plan, ask the user clarifying
 questions. Do not guess.
 
-Write the plan to `plans/$TICKET_ID-PLAN.md` (relative to this skill's directory) with this structure:
+Write the plan to `./workspace/plans/$TICKET_ID-PLAN.md` (relative to this skill's directory) with this structure:
 
 ```markdown
 # $TICKET_ID: [Ticket Summary]
@@ -125,7 +125,7 @@ They assume you are already on the feature branch in the correct repo.
 Implement the plan for the current branch’s ticket.
 
 1. Determine the ticket ID from the current branch name
-2. Read the plan from `plans/$TICKET_ID-PLAN.md`
+2. Read the plan from `./workspace/plans/$TICKET_ID-PLAN.md`
 3. **If no plan exists, STOP:** tell the user to run `/jira-work $TICKET_ID` first
 4. Implement the changes described in the plan, working through each item
 5. After each significant change, briefly summarize what was done
@@ -136,7 +136,7 @@ Implement the plan for the current branch’s ticket.
 Run a code review on the current ticket’s changes.
 
 1. Determine the ticket ID from the current branch name
-2. Read the plan from `plans/$TICKET_ID-PLAN.md` for context on intent
+2. Read the plan from `./workspace/plans/$TICKET_ID-PLAN.md` for context on intent
 3. Invoke the `/driver-code-review` skill to review the changes (it will auto-detect the correct base branch from any open PR, falling back to `main`)
 
 ### `/jira-work commit`
@@ -149,11 +149,12 @@ Commit all changes and push the branch to origin.
    commit message must be the ticket ID on its own (e.g., `JAVA-6111`)
 4. Commit the changes
 5. Push the branch to origin: `git push -u origin $BRANCH_NAME`
-6. Delete the plan file: `plans/$TICKET_ID-PLAN.md`
+6. Delete the plan file: `./workspace/plans/$TICKET_ID-PLAN.md`
 
 ---
 
 ## Workspace Convention
 
-All temporary output (evals, benchmarks, scratch files) goes in the `workspace/`
+Strictly follow this convention: 
+All temporary output (evals, plans, benchmarks, scratch files) goes in the `workspace/`
 directory inside this skill's directory. The `*/workspace/` pattern is gitignored.

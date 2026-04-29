@@ -3,7 +3,6 @@ name: driver-code-review
 description: Review MongoDB Java/Kotlin/Scala driver code changes for correctness, performance, concurrency, binary compatibility, and idiomatic language usage.
 allowed-tools: Bash Read Agent Grep Glob
 argument-hint: "[main | #PR | branch | URL] [- focus area]"
-disable-model-invocation: true
 ---
 # Driver Code Review
 
@@ -82,7 +81,7 @@ Specifically:
 
 ## Severity Labels
 
-Use labels to indicate priority on **changed code**:
+Always use labels to indicate priority on **changed code**:
 
 - 🔴 `[blocking]` - Must fix before merge
 - 🟡 `[important]` - Should fix, discuss if disagree
@@ -412,5 +411,6 @@ documentation-only, Javadoc, or comment-only changes.
 
 ## Workspace Convention
 
-All temporary output (evals, benchmarks, scratch files) goes in the `workspace/`
+Strictly follow this convention: 
+All temporary output (evals, benchmarks, plans, scratch files) goes in the `workspace/`
 directory inside this skill's directory. The `*/workspace/` pattern is gitignored.
