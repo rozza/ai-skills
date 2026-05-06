@@ -1,7 +1,7 @@
 ---
 name: jira-work
 description: Start working on a Jira ticket - validates workspace, creates branch, fetches ticket details, and produces an implementation plan for review.
-argument-hint: "<PROJ-XXXX | implement | code-review | commit>"
+argument-hint: "<PROJ-XXXX | implement | code-review | commit> [- extra context]"
 disable-model-invocation: true
 ---
 # jira-work: Start Working on a Jira Ticket
@@ -15,8 +15,12 @@ keychain (or prompts to create one).
 
 ## Step 1: Parse Input
 
-Extract the project key and ticket ID from the argument:
-- `JAVA-6111` → project key: `JAVA`, ticket ID: `JAVA-6111`
+Extract the project key, ticket ID, and optional extra context from the argument:
+- `JAVA-6111` → project key: `JAVA`, ticket ID: `JAVA-6111`, extra: none
+- `JAVA-6111 - focus on backpressure` → project key: `JAVA`, ticket ID: `JAVA-6111`,
+  extra: "focus on backpressure"
+
+Anything after a `-` separator is extra context passed into the planning phase.
 
 ## Step 2: Resolve Working Directory
 
@@ -79,39 +83,31 @@ Capture the full description, acceptance criteria, and all comments.
 
 ## Step 7: Create Implementation Plan
 
-Analyze the ticket content **and** explore the codebase at `WORK_PATH` to understand the
-relevant code.
+Prepare a spec from the ticket content:
+- Ticket summary and description
+- Acceptance criteria
+- Relevant comments and context
+- Extra context from the user (if provided via `-`)
+- The `WORK_PATH` codebase location
 
 **Important:** If there isn’t enough information to make a plan, ask the user clarifying
 questions. Do not guess.
 
-Write the plan to `./workspace/plans/$TICKET_ID-PLAN.md` (relative to this skill's directory) with this structure:
+Invoke the `superpowers:writing-plans` skill with this spec. Plans are saved to
+superpowers’ default location: `docs/superpowers/plans/YYYY-MM-DD-$TICKET_ID.md`
+(relative to `WORK_PATH`).
 
-```markdown
-# $TICKET_ID: [Ticket Summary]
+The writing-plans skill will:
+- Explore the codebase at `WORK_PATH`
+- Map out file structure and changes needed
+- Produce bite-sized TDD tasks with exact file paths and code
+- Self-review against the spec
+- Offer execution choice (subagent-driven or inline)
 
-## Ticket Details
-[Full raw ticket content and comments from Jira]
+## Step 8: Confirm Plan
 
-## Implementation Plan
-
-### Requirements
-[Key requirements and acceptance criteria extracted from the ticket]
-
-### Proposed Approach
-[Files to change, new files to create, tests to add/modify]
-
-### Open Questions
-[Anything unclear that needs user input]
-
-### Risks / Considerations
-[Edge cases, backwards compatibility, performance, etc.]
-```
-
-## Step 8: Request Review
-
-Present the plan summary to the user and ask them to review it before any implementation
-begins. Link to the plan file location.
+If writing-plans did not already present the execution choice to the user, present it
+now. Link to the plan file location.
 
 * * *
 
@@ -125,18 +121,17 @@ They assume you are already on the feature branch in the correct repo.
 Implement the plan for the current branch’s ticket.
 
 1. Determine the ticket ID from the current branch name
-2. Read the plan from `./workspace/plans/$TICKET_ID-PLAN.md`
+2. Find the plan at `docs/superpowers/plans/*-$TICKET_ID.md` (glob for date prefix)
 3. **If no plan exists, STOP:** tell the user to run `/jira-work $TICKET_ID` first
-4. Implement the changes described in the plan, working through each item
-5. After each significant change, briefly summarize what was done
-6. Run any relevant tests to verify the changes compile and pass
+4. Execute using `superpowers:subagent-driven-development` (recommended) or
+   `superpowers:executing-plans` based on user preference
 
 ### `/jira-work code-review`
 
 Run a code review on the current ticket’s changes.
 
 1. Determine the ticket ID from the current branch name
-2. Read the plan from `./workspace/plans/$TICKET_ID-PLAN.md` for context on intent
+2. Read the plan from `docs/superpowers/plans/*-$TICKET_ID.md` for context on intent
 3. Invoke the `/driver-code-review` skill to review the changes (it will auto-detect the correct base branch from any open PR, falling back to `main`)
 
 ### `/jira-work commit`
@@ -149,7 +144,6 @@ Commit all changes and push the branch to origin.
    commit message must be the ticket ID on its own (e.g., `JAVA-6111`)
 4. Commit the changes
 5. Push the branch to origin: `git push -u origin $BRANCH_NAME`
-6. Delete the plan file: `./workspace/plans/$TICKET_ID-PLAN.md`
 
 ---
 

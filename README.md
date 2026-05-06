@@ -31,6 +31,7 @@ Orchestrates the full “begin work” workflow:
 
 ```bash
 /jira-work JAVA-6111
+/jira-work JAVA-6111 - focus on backpressure handling
 ```
 
 **What it does:**
@@ -40,21 +41,24 @@ Orchestrates the full “begin work” workflow:
 3. Updates `main` from `upstream` (or `origin`)
 4. Creates a feature branch named after the ticket (e.g., `JAVA-6111`)
 5. Fetches the full Jira ticket and comments using the `jira-cli` skill
-6. Explores the codebase and writes an implementation plan to
-   `jira-work/plans/JAVA-6111-PLAN.md`
-7. Asks you to review the plan before any implementation begins
+6. Delegates to superpowers' `writing-plans` to create a detailed implementation plan
+   with bite-sized TDD tasks
+7. Offers execution choice (subagent-driven or inline)
 
 **Subcommands** (after a plan exists):
 
 ```bash
-/jira-work implement     # implement the plan for the current branch's ticket
+/jira-work implement     # execute the plan using superpowers
 /jira-work code-review   # run /driver-code-review on changes against main
 /jira-work commit        # commit changes and push branch to origin
 ```
 
-**Requires:** Uses the local [jira-cli](jira-cli/) skill for all Jira commands.
-[ankitpokhrel/jira-cli](https://github.com/ankitpokhrel/jira-cli) must be installed and
-configured.
+**Requires:**
+- [superpowers](https://github.com/obra/superpowers) plugin installed
+  (`/plugin install superpowers@claude-plugins-official`)
+- Local [jira-cli](jira-cli/) skill for all Jira commands
+- [ankitpokhrel/jira-cli](https://github.com/ankitpokhrel/jira-cli) installed and
+  configured
 
 ### [driver-code-review](driver-code-review/)
 
@@ -66,7 +70,7 @@ Focuses exclusively on changed code in diffs and pull requests.
 /driver-code-review main              # diff current branch against main
 /driver-code-review #123              # review PR 123
 /driver-code-review release/1.0       # diff against a specific branch
-/driver-code-review                   # asks what to diff against
+/driver-code-review                   # auto-detects (open PR or primary branch)
 ```
 
 Add extra focus with `-`:
@@ -82,18 +86,9 @@ Add extra focus with `-`:
 - Performance smell detection (regex, pooling, collections, caching)
 - Concurrency review (locks, volatile, atomics, thread pools)
 - Architecture, SOLID principles, clean code, and test quality
-- GitHub Copilot suggestions (experimental — validated and filtered for correctness)
-- PR comment review — checks whether prior review comments have been addressed
 
-**Optional dependency:** GitHub Copilot CLI is used as an experimental additional review
-signal. Copilot suggestions are automatically validated — incorrect or irrelevant ones
-are discarded. If the extension is not installed or the command fails, the review
-proceeds without it.
-
-```bash
-gh extension install github/gh-copilot
-# Then run it locally - to install and auth
-```
+Integrates with the [superpowers](https://github.com/obra/superpowers) plugin for
+workflow orchestration (dispatched automatically during `requesting-code-review`).
 
 **Reference guides:**
 
