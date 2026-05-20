@@ -93,9 +93,9 @@ Prepare a spec from the ticket content:
 **Important:** If there isn’t enough information to make a plan, ask the user clarifying
 questions. Do not guess.
 
-Invoke the `superpowers:writing-plans` skill with this spec. Plans are saved to
-superpowers’ default location: `docs/superpowers/plans/YYYY-MM-DD-$TICKET_ID.md`
-(relative to `WORK_PATH`).
+Invoke the `superpowers:writing-plans` skill with this spec. **Override the default plan
+location** — save plans to `.claude/docs/plans/YYYY-MM-DD-$TICKET_ID.md`
+(relative to `WORK_PATH`), NOT the default `docs/superpowers/plans/` path.
 
 The writing-plans skill will:
 - Explore the codebase at `WORK_PATH`
@@ -121,7 +121,7 @@ They assume you are already on the feature branch in the correct repo.
 Implement the plan for the current branch’s ticket.
 
 1. Determine the ticket ID from the current branch name
-2. Find the plan at `docs/superpowers/plans/*-$TICKET_ID.md` (glob for date prefix)
+2. Find the plan at `.claude/docs/plans/*-$TICKET_ID.md` (glob for date prefix)
 3. **If no plan exists, STOP:** tell the user to run `/jira-work $TICKET_ID` first
 4. Execute using `superpowers:subagent-driven-development` (recommended) or
    `superpowers:executing-plans` based on user preference
@@ -131,7 +131,7 @@ Implement the plan for the current branch’s ticket.
 Run a code review on the current ticket’s changes.
 
 1. Determine the ticket ID from the current branch name
-2. Read the plan from `docs/superpowers/plans/*-$TICKET_ID.md` for context on intent
+2. Read the plan from `.claude/docs/plans/*-$TICKET_ID.md` for context on intent
 3. Invoke the `/driver-code-review` skill to review the changes (it will auto-detect the correct base branch from any open PR, falling back to `main`)
 
 ### `/jira-work commit`
