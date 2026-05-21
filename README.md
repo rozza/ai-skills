@@ -49,7 +49,7 @@ Orchestrates the full “begin work” workflow:
 
 ```bash
 /jira-work implement     # execute the plan using superpowers
-/jira-work code-review   # run /driver-code-review on changes against main
+/jira-work code-review   # run /deep-code-review on changes against main
 /jira-work commit        # commit changes and push branch to origin
 ```
 
@@ -60,46 +60,42 @@ Orchestrates the full “begin work” workflow:
 - [ankitpokhrel/jira-cli](https://github.com/ankitpokhrel/jira-cli) installed and
   configured
 
-### [driver-code-review](driver-code-review/)
+### [deep-code-review](deep-code-review/)
 
-Review MongoDB Java/Kotlin/Scala driver code changes for correctness, performance,
-concurrency, binary compatibility, and idiomatic language usage.
-Focuses exclusively on changed code in diffs and pull requests.
+Portable multi-agent code review orchestrator. Captures a diff, dispatches parallel
+review agents, and synthesizes their findings into a single consolidated review.
 
 ```bash
-/driver-code-review main              # diff current branch against main
-/driver-code-review #123              # review PR 123
-/driver-code-review release/1.0       # diff against a specific branch
-/driver-code-review                   # auto-detects (open PR or primary branch)
+/deep-code-review main              # diff current branch against main
+/deep-code-review #123              # review PR 123
+/deep-code-review release/1.0       # diff against a specific branch
+/deep-code-review                   # auto-detects (open PR or primary branch)
 ```
 
 Add extra focus with `-`:
 
 ```bash
-/driver-code-review main - ensure concurrency
-/driver-code-review #123 - check binary compat
+/deep-code-review main - ensure concurrency safety
+/deep-code-review #123 - check binary compat
 ```
 
-**Covers:**
-- Binary compatibility checks (flags breaking changes as blocking)
-- Language-idiomatic naming for Java, Kotlin, and Scala modules
-- Performance smell detection (regex, pooling, collections, caching)
-- Concurrency review (locks, volatile, atomics, thread pools)
-- Architecture, SOLID principles, clean code, and test quality
+**How it works:**
+1. Captures the diff (auto-detects PR vs branch, resolves remotes)
+2. Dispatches parallel review agents:
+   - Domain agent (reads project AGENTS.md/CLAUDE.md for rules)
+   - General quality reviewer (correctness, architecture, tests)
+   - Code quality reviewer (reuse, efficiency, patterns)
+   - PR comment checker (if PR has existing review comments)
+3. Synthesizes all findings into a single consolidated review
 
-Integrates with the [superpowers](https://github.com/obra/superpowers) plugin for
-workflow orchestration (dispatched automatically during `requesting-code-review`).
+Carries no domain knowledge — portable across any project with AGENTS.md.
 
-**Reference guides:**
+Requires [superpowers](https://github.com/obra/superpowers) plugin installed.
 
-| Guide | Covers |
-| --- | --- |
-| [Architecture](driver-code-review/references/architecture.md) | Modules, packages, layers, dependency direction |
-| [SOLID Principles](driver-code-review/references/solid-principles.md) | SRP, OCP, LSP, ISP, DIP with driver examples |
-| [Clean Code](driver-code-review/references/clean-code.md) | DRY, KISS, YAGNI, naming, builders, value objects |
-| [Test Quality](driver-code-review/references/test-quality.md) | JUnit 5, AAA pattern, parameterized tests, assertions |
-| [Performance](driver-code-review/references/performance.md) | Regex, pooling, collections, caching, boxing |
-| [Concurrency](driver-code-review/references/concurrency.md) | Locks, volatile, atomics, thread pools, virtual threads |
+### [driver-code-review](driver-code-review/)
+
+Thin wrapper around `deep-code-review` for backward compatibility.
+Accepts the same arguments and delegates directly.
 
 
 ### [specifications](specifications/)
