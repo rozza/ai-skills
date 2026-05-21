@@ -49,6 +49,26 @@ Run the diff command. Also capture the PR description if reviewing a PR
 
 **If the diff exceeds ~3000 lines**, warn the user and suggest narrowing scope.
 
+## Step 1.5: Gather Context for Agents
+
+Before dispatching agents, gather context they'll need:
+
+1. **Extract changed file paths** from the diff (parse `diff --git a/... b/...` headers)
+2. **Find all AGENTS.md and CLAUDE.md files** in the directory hierarchy of each changed
+   file. For a change in `driver-kotlin-sync/src/main/kotlin/Foo.kt`, collect:
+   - `./AGENTS.md`, `./CLAUDE.md` (root)
+   - `./driver-kotlin-sync/AGENTS.md`, `./driver-kotlin-sync/CLAUDE.md` (module)
+   - Any deeper AGENTS.md/CLAUDE.md files along the path
+   
+   Use: `find . -name "AGENTS.md" -o -name "CLAUDE.md" | sort` then filter to paths
+   that are ancestors of changed files.
+3. **Read all found AGENTS.md/CLAUDE.md files** and concatenate their contents into a
+   single context block (label each with its path).
+4. **Follow references** — if any AGENTS.md points to reference docs (e.g.,
+   `.agents/references/`), read those too and include them.
+
+This context block is passed to ALL agents below as `**Project Context:**`.
+
 ## Step 2: Dispatch Parallel Review Agents
 
 **Small diff fast-path:** If the diff is under ~50 lines, skip the
@@ -60,6 +80,13 @@ the Domain Agent and `/code-review` Agent. Run the `/requesting-code-review` Age
 for diffs over ~50 lines. Run the PR Comment Check agent only for PR reviews with
 existing comments.
 
+**Every agent receives:**
+- The full diff text
+- PR description (if available)
+- User's focus area (the `- focus` suffix)
+- The project context block (all AGENTS.md/CLAUDE.md content gathered in Step 1.5)
+- The severity labels and scope rule (defined at bottom of this skill)
+
 ### Domain Agent
 
 Dispatch one Agent with these instructions:
@@ -68,11 +95,16 @@ Dispatch one Agent with these instructions:
 > project's own coding standards and guidelines.
 >
 > **Steps:**
-> 1. Read the project's AGENTS.md, CLAUDE.md, and any reference documents they point
->    to (e.g., `.agents/references/` files, module-level AGENTS.md files)
-> 2. Apply those rules to review the diff below
-> 3. Focus only on changed lines — do not critique unchanged code
-> 4. Report findings using the severity labels and output format provided
+> 1. Read the Project Context below carefully — it contains all AGENTS.md, CLAUDE.md,
+>    and reference documents relevant to the changed files
+> 2. If any referenced documents were not included (e.g., a module AGENTS.md references
+>    a file not shown), read it yourself
+> 3. Apply ALL rules from these documents to review the diff
+> 4. Focus only on changed lines — do not critique unchanged code
+> 5. Report findings using the severity labels and output format provided
+>
+> **Project Context:**
+> (include the full context block from Step 1.5)
 >
 > **Diff:**
 > (include full diff text)
@@ -99,17 +131,15 @@ Dispatch one Agent with these instructions:
 
 ### `/requesting-code-review` Agent
 
-Dispatch one Agent following the `/requesting-code-review` skill pattern:
+Dispatch one Agent and instruct it to invoke the `/requesting-code-review` skill.
+The agent's prompt must include:
 
-> You are a general code reviewer. Review the diff for:
-> - Correctness: logic errors, edge cases, off-by-one, null safety, resource leaks
-> - Architecture: does the change fit existing patterns? dependency direction, coupling
-> - Test quality: are new/changed behaviors tested? assertions, edge cases
-> - Production readiness: error handling, logging, observability
+> You are performing a code review. Invoke the `/requesting-code-review` skill to
+> guide your review process.
 >
-> Focus only on changed lines. Do not critique unchanged code.
-> Group findings by file. Use the severity labels provided.
-> End with a 2-3 sentence summary and a decision: Approve | Comment | Request Changes.
+> **Project Context:**
+> (include the full context block from Step 1.5 — the agent needs project rules
+> to assess whether changes fit existing patterns and architecture)
 >
 > **Diff:**
 > (include full diff text)
@@ -133,21 +163,19 @@ Dispatch one Agent following the `/requesting-code-review` skill pattern:
 >
 > **Output format:** Group findings by file path. For each finding include severity,
 > line numbers, one-line summary, and detail/suggested fix.
+> End with a 2-3 sentence summary and a decision: Approve | Comment | Request Changes.
 
 ### `/code-review` Agent
 
-Dispatch one Agent following the `/code-review` skill pattern:
+Dispatch one Agent and instruct it to invoke the `/code-review` skill.
+The agent's prompt must include:
 
-> You are a code quality reviewer focused on reuse, efficiency, and craftsmanship.
-> Review the diff for:
-> - Code reuse: duplication within the diff or with existing code
-> - Efficiency: unnecessary allocations, redundant operations, complexity
-> - Quality: naming clarity, method extraction opportunities, YAGNI violations
-> - Patterns: does the code follow or deviate from patterns used elsewhere in the repo?
+> You are performing a code quality review. Invoke the `/code-review` skill to
+> guide your review process.
 >
-> Focus only on changed lines. Do not critique unchanged code.
-> Group findings by file. Use the severity labels provided.
-> End with a 2-3 sentence summary and a decision: Approve | Comment | Request Changes.
+> **Project Context:**
+> (include the full context block from Step 1.5 — the agent needs this to check
+> whether code follows or deviates from existing project patterns)
 >
 > **Diff:**
 > (include full diff text)
@@ -171,6 +199,7 @@ Dispatch one Agent following the `/code-review` skill pattern:
 >
 > **Output format:** Group findings by file path. For each finding include severity,
 > line numbers, one-line summary, and detail/suggested fix.
+> End with a 2-3 sentence summary and a decision: Approve | Comment | Request Changes.
 
 ### PR Comment Check Agent (PR reviews only)
 
