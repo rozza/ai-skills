@@ -1,21 +1,38 @@
 ---
 name: deep-code-review
-description: Multi-agent code review orchestrator. Captures a diff, dispatches parallel review agents (domain, general quality, reuse/efficiency, PR comments), and synthesizes findings into a consolidated review. Portable - uses project AGENTS.md for domain rules.
+description: Multi-agent code review orchestrator. Captures a diff or reads files by path, dispatches parallel review agents (domain, general quality, reuse/efficiency, PR comments), and synthesizes findings into a consolidated review. Portable - uses project AGENTS.md for domain rules.
 allowed-tools: Bash Read Agent Grep Glob Skill
-argument-hint: "[main | #PR | branch | URL] [- focus area]"
+argument-hint: "[main | #PR | branch | URL | path/to/file] [- focus area]"
 ---
 # Deep Code Review
 
-A portable, multi-agent code review orchestrator. Reviews **only changed code** in a
-diff or pull request. Carries no domain knowledge — relies on the project's AGENTS.md
-and CLAUDE.md for rules.
+A portable, multi-agent code review orchestrator. Reviews changed code in diffs/PRs
+or full file contents by path. Carries no domain knowledge — relies on the project's
+AGENTS.md and CLAUDE.md for rules.
 
-## Step 1: Determine and Capture the Diff
+## Step 1: Determine the Review Mode
 
 **STOP. Do NOT run git diff, gh pr diff, gh pr view, git log, or ANY command until you
 complete this section.**
 
-Parse the user's argument:
+Parse the user's argument to determine whether this is a **diff review** or a
+**path review**:
+
+**Path review** — if the argument is a file path or glob pattern (contains `/`, ends
+in a file extension, or matches existing files/directories):
+
+| User invocation | Meaning | Action |
+| --- | --- | --- |
+| `/deep-code-review src/foo.java` | Review a single file | Read full file contents |
+| `/deep-code-review deep-code-review/` | Review a directory | Read all files in directory |
+| `/deep-code-review src/**/*.kt` | Review by glob | Read all matching files |
+| `/deep-code-review path/a.java path/b.kt` | Review multiple files | Read all specified files |
+
+For path reviews, read the full contents of the file(s) — this is NOT a diff review.
+The scope rule changes: review the entire file for quality, not just "changed lines."
+Skip PR Comment Check agent (Phase 3) entirely for path reviews.
+
+**Diff review** — all other arguments:
 
 | User invocation | Meaning | Action |
 | --- | --- | --- |
@@ -23,6 +40,7 @@ Parse the user's argument:
 | `/deep-code-review release/1.0` | Diff against a specific branch | `git diff release/1.0...HEAD` |
 | `/deep-code-review #123` | Review PR 123 | `gh pr diff 123 -R <remote>` (see remote resolution below) |
 | `/deep-code-review https://github.com/.../pull/123` | Review PR by URL | `gh pr diff 123 -R <remote>` (extract number from URL) |
+| `/deep-code-review <commit-sha>` | Diff against a commit | `git diff <sha>...HEAD` |
 | `/deep-code-review` (no argument) | Auto-detect | Check for an open PR first, else diff against primary branch (see below) |
 
 **Extra instructions with `-`:** Anything after a `-` is a focus area.
@@ -53,15 +71,17 @@ Run the diff command. Also capture the PR description if reviewing a PR
 
 Before dispatching agents, gather context they'll need:
 
-1. **Extract changed file paths** from the diff (parse `diff --git a/... b/...` headers)
-2. **Find all AGENTS.md and CLAUDE.md files** in the directory hierarchy of each changed
-   file. For a change in `driver-kotlin-sync/src/main/kotlin/Foo.kt`, collect:
+1. **Extract file paths under review:**
+   - For diff reviews: parse `diff --git a/... b/...` headers from the diff
+   - For path reviews: use the file paths provided by the user
+2. **Find all AGENTS.md and CLAUDE.md files** in the directory hierarchy of each file
+   under review. For a file at `driver-kotlin-sync/src/main/kotlin/Foo.kt`, collect:
    - `./AGENTS.md`, `./CLAUDE.md` (root)
    - `./driver-kotlin-sync/AGENTS.md`, `./driver-kotlin-sync/CLAUDE.md` (module)
    - Any deeper AGENTS.md/CLAUDE.md files along the path
    
    Use: `find . -name "AGENTS.md" -o -name "CLAUDE.md" | sort` then filter to paths
-   that are ancestors of changed files.
+   that are ancestors of files under review.
 3. **Read all found AGENTS.md/CLAUDE.md files** and concatenate their contents into a
    single context block (label each with its path).
 4. **Follow references** — if any AGENTS.md points to reference docs (e.g.,
@@ -69,23 +89,33 @@ Before dispatching agents, gather context they'll need:
 
 This context block is passed to ALL agents below as `**Project Context:**`.
 
+**For path reviews:** also read the full contents of all files under review and
+include them as `**File Contents:**` (labelled by path) instead of `**Diff:**`.
+
 ## Step 2: Dispatch Parallel Review Agents
 
-**Small diff fast-path:** If the diff is under ~50 lines, skip the
-`/requesting-code-review` agent. The domain agent + `/code-review` agent are
+**Small diff fast-path (diff reviews only):** If the diff is under ~50 lines, skip
+the `/requesting-code-review` agent. The domain agent + `/code-review` agent are
 sufficient for small changes.
+
+**Path reviews:** Always run all agents (Domain + `/requesting-code-review` +
+`/code-review`). Skip PR Comment Check agent entirely.
 
 Run agents **in parallel** (single message with multiple Agent calls). Always run
 the Domain Agent and `/code-review` Agent. Run the `/requesting-code-review` Agent
-for diffs over ~50 lines. Run the PR Comment Check agent only for PR reviews with
-existing comments.
+for diffs over ~50 lines or for all path reviews. Run the PR Comment Check agent
+only for PR reviews with existing comments.
 
 **Every agent receives:**
-- The full diff text
-- PR description (if available)
+- The full diff text OR file contents (depending on review mode)
+- PR description (if available, diff reviews only)
 - User's focus area (the `- focus` suffix)
 - The project context block (all AGENTS.md/CLAUDE.md content gathered in Step 1.5)
 - The severity labels and scope rule (defined at bottom of this skill)
+
+**Scope rule adaptation for path reviews:** Replace the diff-focused scope rule with:
+> Review the entire file contents for quality, correctness, and adherence to project
+> standards. All code is in scope.
 
 ### Domain Agent
 
