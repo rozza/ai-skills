@@ -49,7 +49,7 @@ Orchestrates the full “begin work” workflow:
 
 ```bash
 /jira-work implement     # execute the plan using superpowers
-/jira-work code-review   # run /deep-code-review on changes against main
+/jira-work code-review   # run /multi-review on changes against main
 /jira-work commit        # commit changes and push branch to origin
 ```
 
@@ -60,23 +60,23 @@ Orchestrates the full “begin work” workflow:
 - [ankitpokhrel/jira-cli](https://github.com/ankitpokhrel/jira-cli) installed and
   configured
 
-### [deep-code-review](deep-code-review/)
+### [multi-review](multi-review/)
 
 Portable multi-agent code review orchestrator. Captures a diff, dispatches parallel
 review agents, and synthesizes their findings into a single consolidated review.
 
 ```bash
-/deep-code-review main              # diff current branch against main
-/deep-code-review #123              # review PR 123
-/deep-code-review release/1.0       # diff against a specific branch
-/deep-code-review                   # auto-detects (open PR or primary branch)
+/multi-review main              # diff current branch against main
+/multi-review #123              # review PR 123
+/multi-review release/1.0       # diff against a specific branch
+/multi-review                   # auto-detects (open PR or primary branch)
 ```
 
 Add extra focus with `-`:
 
 ```bash
-/deep-code-review main - ensure concurrency safety
-/deep-code-review #123 - check binary compat
+/multi-review main - ensure concurrency safety
+/multi-review #123 - check binary compat
 ```
 
 **How it works:**
@@ -94,7 +94,7 @@ Requires [superpowers](https://github.com/obra/superpowers) plugin installed.
 
 ### [driver-code-review](driver-code-review/)
 
-Thin wrapper around `deep-code-review` for backward compatibility.
+Thin wrapper around `multi-review` for backward compatibility.
 Accepts the same arguments and delegates directly.
 
 
