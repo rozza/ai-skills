@@ -92,6 +92,27 @@ Carries no domain knowledge — portable across any project with AGENTS.md.
 
 Requires [superpowers](https://github.com/obra/superpowers) plugin installed.
 
+### [grill-review](grill-review/)
+
+Stress-test your understanding of a code change by answering questions about it.
+Works for both PR authors (self-check before submitting) and reviewers (verify
+you didn't rubber-stamp).
+
+```bash
+/grill-review main              # grill on diff against main
+/grill-review #123              # grill on PR 123
+/grill-review src/Handler.java  # grill on a specific file
+/grill-review                   # auto-detects (open PR or primary branch)
+```
+
+**How it works:**
+1. Captures the diff or reads files (same detection logic as multi-review)
+2. Builds an internal risk map of the change (complexity, impact, novelty, coverage)
+3. Asks pointed questions one at a time across four categories:
+   Intent & Motivation → Mechanics & Correctness → Impact & Integration → Testing
+4. Verifies your answers against the actual code
+5. Concludes with a confidence verdict per category
+
 ### [driver-code-review](driver-code-review/)
 
 Thin wrapper around `multi-review` for backward compatibility.
