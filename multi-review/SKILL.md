@@ -160,16 +160,17 @@ Dispatch one Agent with these instructions:
 >
 > (Include only the applicable scope rule based on the review mode.)
 >
-> **Severity Labels:**
-> - `[blocking]` — Must fix before merge
-> - `[important]` — Should fix, discuss if disagree
-> - `[nit]` — Nice to have, not blocking
-> - `[suggestion]` — Alternative approach to consider
-> - `[learning]` — Educational comment, no action needed
-> - `[praise]` — Good work, keep it up!
+> **Severity Labels (use these exact Unicode emoji, never shortcodes like `:bulb:`):**
+> - 🔴 `[blocking]` — Must fix before merge
+> - 🟡 `[important]` — Should fix, discuss if disagree
+> - 🟢 `[nit]` — Nice to have, not blocking
+> - 💡 `[suggestion]` — Alternative approach to consider
+> - 📚 `[learning]` — Educational comment, no action needed
+> - 🎉 `[praise]` — Good work, keep it up!
 >
-> **Output format:** Group findings by file path. For each finding include severity,
-> line numbers, one-line summary, and detail/suggested fix.
+> **Output format:** Group findings by file path. For each finding, prefix the
+> severity with its Unicode emoji (e.g., `- 🔴 [blocking] **L42:** ...`).
+> Include line numbers, one-line summary, and detail/suggested fix.
 
 ### Structured Review Agent
 
@@ -208,16 +209,17 @@ Dispatch one Agent with these instructions:
 >
 > (Include only the applicable scope rule based on the review mode.)
 >
-> **Severity Labels:**
-> - `[blocking]` — Must fix before merge
-> - `[important]` — Should fix, discuss if disagree
-> - `[nit]` — Nice to have, not blocking
-> - `[suggestion]` — Alternative approach to consider
-> - `[learning]` — Educational comment, no action needed
-> - `[praise]` — Good work, keep it up!
+> **Severity Labels (use these exact Unicode emoji, never shortcodes like `:bulb:`):**
+> - 🔴 `[blocking]` — Must fix before merge
+> - 🟡 `[important]` — Should fix, discuss if disagree
+> - 🟢 `[nit]` — Nice to have, not blocking
+> - 💡 `[suggestion]` — Alternative approach to consider
+> - 📚 `[learning]` — Educational comment, no action needed
+> - 🎉 `[praise]` — Good work, keep it up!
 >
-> **Output format:** Group findings by file path. For each finding include severity,
-> line numbers, one-line summary, and detail/suggested fix.
+> **Output format:** Group findings by file path. For each finding, prefix the
+> severity with its Unicode emoji (e.g., `- 🔴 [blocking] **L42:** ...`).
+> Include line numbers, one-line summary, and detail/suggested fix.
 > End with a 2-3 sentence summary and a decision: Approve | Comment | Request Changes.
 
 ### `/code-review` Agent
@@ -250,16 +252,17 @@ The agent's prompt must include:
 >
 > (Include only the applicable scope rule based on the review mode.)
 >
-> **Severity Labels:**
-> - `[blocking]` — Must fix before merge
-> - `[important]` — Should fix, discuss if disagree
-> - `[nit]` — Nice to have, not blocking
-> - `[suggestion]` — Alternative approach to consider
-> - `[learning]` — Educational comment, no action needed
-> - `[praise]` — Good work, keep it up!
+> **Severity Labels (use these exact Unicode emoji, never shortcodes like `:bulb:`):**
+> - 🔴 `[blocking]` — Must fix before merge
+> - 🟡 `[important]` — Should fix, discuss if disagree
+> - 🟢 `[nit]` — Nice to have, not blocking
+> - 💡 `[suggestion]` — Alternative approach to consider
+> - 📚 `[learning]` — Educational comment, no action needed
+> - 🎉 `[praise]` — Good work, keep it up!
 >
-> **Output format:** Group findings by file path. For each finding include severity,
-> line numbers, one-line summary, and detail/suggested fix.
+> **Output format:** Group findings by file path. For each finding, prefix the
+> severity with its Unicode emoji (e.g., `- 🔴 [blocking] **L42:** ...`).
+> Include line numbers, one-line summary, and detail/suggested fix.
 > End with a 2-3 sentence summary and a decision: Approve | Comment | Request Changes.
 
 ### PR Comment Check Agent (PR reviews only)
@@ -303,7 +306,11 @@ Dispatch one Agent with these instructions:
 
 ## Step 3: Synthesize
 
-After all agents complete, produce **one consolidated review**:
+After all agents complete, produce **one consolidated review**.
+
+**Important:** Always use literal Unicode emoji characters (🔴 🟡 🟢 💡 📚 🎉 ✅ ⚠️),
+never GitHub/Slack-style shortcodes like `:red_circle:` or `:bulb:`. Shortcodes do not
+render in the terminal.
 
 1. **Deduplicate** — If multiple agents flagged the same issue, keep the better-written
    version and note agreement
@@ -318,32 +325,32 @@ After all agents complete, produce **one consolidated review**:
 
 ## Output Template
 
-```
-## Findings
+Use this exact format with literal Unicode emoji (not shortcodes):
 
-### `path/to/File.java`
-
-- 🔴 `[blocking]` **L42-48:** One-line summary
-  Detail: explanation and suggested fix
-
-- 🟡 `[important]` **L15:** One-line summary
-  Detail: explanation
-
-### `path/to/Other.kt`
-
-- 🟢 `[nit]` **L7:** One-line summary
-
-## Prior Review Comments (PR reviews only)
-
-- ✅ Addressed: brief list
-- ⚠️ Unaddressed: with severity and detail
-
-## Summary
-
-2-3 sentence overview of the change quality and key concerns.
-
-**Decision:** Approve | Comment | Request Changes
-```
+> ## Findings
+>
+> ### `path/to/File.java`
+>
+> - 🔴 `[blocking]` **L42-48:** One-line summary
+>   Detail: explanation and suggested fix
+>
+> - 🟡 `[important]` **L15:** One-line summary
+>   Detail: explanation
+>
+> ### `path/to/Other.kt`
+>
+> - 🟢 `[nit]` **L7:** One-line summary
+>
+> ## Prior Review Comments (PR reviews only)
+>
+> - ✅ Addressed: brief list
+> - ⚠️ Unaddressed: with severity and detail
+>
+> ## Summary
+>
+> 2-3 sentence overview of the change quality and key concerns.
+>
+> **Decision:** Approve | Comment | Request Changes
 
 ## Severity Labels
 
